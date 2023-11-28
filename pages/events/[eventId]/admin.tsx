@@ -43,7 +43,7 @@ function EventSettings() {
 
   function submitFormHandler(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (password === "sparks23") {
+    if (password === "admin23") {
       setLoggedIn(true);
     } else {
       setErrorStatus(true);

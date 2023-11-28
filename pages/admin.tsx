@@ -38,7 +38,7 @@ function AdminSettings() {
 
   function submitFormHandler(e: any) {
     e.preventDefault();
-    if (password === "sparks23") {
+    if (password === "admin23") {
       setLoggedIn(true);
     } else {
       setErrorStatus(true);

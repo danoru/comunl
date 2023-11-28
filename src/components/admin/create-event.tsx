@@ -34,7 +34,7 @@ function CreateEvent() {
     "success" | "error"
   >("success");
 
-  const user = "sparks";
+  const user = "admin";
   const currentYear = moment().format("YY");
   const userYear = user + currentYear;
 
