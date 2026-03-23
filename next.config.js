@@ -1,27 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "picsum.photos",
-        pathname: "**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.imgur.com",
-        pathname: "**",
-      },
-      {
-        protocol: "https",
-        hostname: "i.imgur.com",
-        pathname: "**",
-      },
-      {
-        protocol: "https",
-        hostname: "imgur.com",
-        pathname: "**",
-      },
+    domains: [
+      "i.imgur.com",
+      "imgur.com",
+      "res.cloudinary.com",
+      "images.unsplash.com",
     ],
   },
 };

@@ -1,34 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
+/* src/styles/global.css */
 
-* {
+/* ─── Reset & base ─────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-body {
-  background-color: white;
-  color: #414141;
-  font-family: 'Open Sans', 'Lato', sans-serif;
-  margin: 0;
-  text-align: center;
-} 
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Lato', sans-serif;
-  color: #2b2b2b;
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
 }
 
-ul {
-  list-style: none;
+body {
   margin: 0;
   padding: 0;
+  background-color: #fdf6ec;
+  /* Prevent layout shift from scrollbar appearing/disappearing */
+  overflow-y: scroll;
 }
 
-.center {
-  margin: auto;
-  text-align: center;
+/* ─── Focus styles ──────────────────────────────────────────────────────────── */
+/* Visible focus rings for keyboard nav, hidden for mouse clicks */
+
+:focus-visible {
+  outline: 2px solid #f4631e;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Scrollbar (Webkit) ────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 31, 58, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 31, 58, 0.3);
+}
+
+/* ─── Typography ────────────────────────────────────────────────────────────── */
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ─── Utility ───────────────────────────────────────────────────────────────── */
+
+/* Prevents content jumping when a modal/dialog opens */
+.modal-open {
+  overflow: hidden;
+}
+
+/* Safe area padding for devices with notches */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }

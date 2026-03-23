@@ -1,53 +1,47 @@
-import CssBaseline from "@mui/material/CssBaseline";
-import Head from "next/head";
-import PropTypes from "prop-types";
+// pages/_app.tsx
 import * as React from "react";
-
-import { CacheProvider } from "@emotion/react";
-import { ThemeProvider } from "@mui/material/styles";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import Head from "next/head";
 import type { AppProps } from "next/app";
+import { SessionProvider } from "next-auth/react";
 
-import createEmotionCache from "../src/createEmotionCache";
-import Layout from "../src/components/layout/layout";
+import { AppCacheProvider } from "@mui/material-nextjs/v14-pagesRouter";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+import Layout from "../src/components/layout/Layout";
 import theme from "../src/styles/theme";
+import { getSiteConfig } from "../src/models";
 
 import "../src/styles/global.css";
 
-// Client-side cache, shared for the whole session of the user in the browser.
-const clientSideEmotionCache = createEmotionCache();
-
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
-  const emotionCache = clientSideEmotionCache;
+  const site = getSiteConfig();
 
   return (
-    <CacheProvider value={emotionCache}>
-      <LocalizationProvider dateAdapter={AdapterMoment}>
-        <Layout>
-          <Head>
-            <title>Comunl</title>
-            <meta charSet="utf-8" />
-            <meta
-              name="viewport"
-              content="initial-scale=1.0, width=device-width"
-            />
-            <link rel="shortcut icon" href="/favicon.ico" />
-          </Head>
-          <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            <Component {...pageProps} />
-          </ThemeProvider>
-        </Layout>
-      </LocalizationProvider>
-    </CacheProvider>
+    // SessionProvider makes useSession() available in any component
+    <SessionProvider session={(pageProps as any).session}>
+      <AppCacheProvider {...props}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Head>
+              <meta charSet="utf-8" />
+              <meta
+                name="viewport"
+                content="initial-scale=1.0, width=device-width"
+              />
+              <meta name="theme-color" content={theme.palette.secondary.main} />
+              <link rel="shortcut icon" href="/favicon.ico" />
+            </Head>
+            <Layout siteConfig={site}>
+              <Component {...pageProps} />
+            </Layout>
+          </LocalizationProvider>
+        </ThemeProvider>
+      </AppCacheProvider>
+    </SessionProvider>
   );
 }
-
-MyApp.propTypes = {
-  Component: PropTypes.elementType.isRequired,
-  emotionCache: PropTypes.object,
-  pageProps: PropTypes.object.isRequired,
-};
