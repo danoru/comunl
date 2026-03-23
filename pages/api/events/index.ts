@@ -1,4 +1,3 @@
-// pages/api/events/index.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getEvents, createEvent } from "../../../src/lib/db";
 import { getSiteConfig, CreateEventSchema } from "../../../src/models";

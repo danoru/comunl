@@ -1,4 +1,3 @@
-// src/lib/auth.ts
 // Helper to protect admin pages server-side.
 //
 // Usage in getServerSideProps:

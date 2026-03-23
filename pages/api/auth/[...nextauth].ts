@@ -1,9 +1,6 @@
-// pages/api/auth/[...nextauth].ts
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-// Allowlist lives in env — comma-separated emails
-// ADMIN_EMAILS=cody@example.com,kendall@example.com
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
   .split(",")
   .map((e) => e.trim().toLowerCase())

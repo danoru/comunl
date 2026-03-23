@@ -1,7 +1,3 @@
-// pages/api/[eventId]/rsvp.ts
-// GET  /api/:eventId/rsvp  — returns all guest items for this event
-// POST /api/:eventId/rsvp  — adds a guest RSVP
-
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { getItems, addItem } from "../../../src/lib/db";

@@ -19,7 +19,6 @@ body {
   margin: 0;
   padding: 0;
   background-color: #fdf6ec;
-  /* Prevent layout shift from scrollbar appearing/disappearing */
   overflow-y: scroll;
 }
 
@@ -69,12 +68,10 @@ img {
 
 /* ─── Utility ───────────────────────────────────────────────────────────────── */
 
-/* Prevents content jumping when a modal/dialog opens */
 .modal-open {
   overflow: hidden;
 }
 
-/* Safe area padding for devices with notches */
 @supports (padding: max(0px)) {
   body {
     padding-left: env(safe-area-inset-left);

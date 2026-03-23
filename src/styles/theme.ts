@@ -1,4 +1,3 @@
-// src/styles/theme.ts
 // Note: createEmotionCache.tsx is no longer needed and can be deleted.
 // @mui/material-nextjs handles the emotion cache automatically.
 

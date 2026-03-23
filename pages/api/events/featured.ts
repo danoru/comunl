@@ -1,4 +1,3 @@
-// pages/api/events/featured.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getFeaturedEvents } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";

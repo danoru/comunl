@@ -1,4 +1,3 @@
-// pages/api/[eventId]/index.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getEvent, updateEvent } from "../../../src/lib/db";
 import { getSiteConfig, UpdateEventSchema } from "../../../src/models";

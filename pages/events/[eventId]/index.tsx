@@ -1,5 +1,4 @@
-// pages/events/[eventId]/index.tsx
-import React, { useState } from "react";
+import React from "react";
 import Head from "next/head";
 import type { GetServerSideProps } from "next";
 import dayjs from "dayjs";
@@ -61,7 +60,7 @@ export default function EventDetailPage({
   event,
   initialItems,
 }: EventDetailPageProps) {
-  const [items, setItems] = useState<SerializedItem[]>(initialItems);
+  const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
 
   const eventDate = dayjs(event.date);
   const now = dayjs();
@@ -75,7 +74,7 @@ export default function EventDetailPage({
   const guests = items.filter((i) => i.itemType === "guest");
   const hostRecs = items.filter((i) => i.itemType === "host-rec");
 
-  const [expandedCats, setExpandedCats] = useState<Set<ItemType>>(
+  const [expandedCats, setExpandedCats] = React.useState<Set<ItemType>>(
     new Set(
       FOOD_CATEGORIES.filter((cat) => items.some((i) => i.itemType === cat))
     )
@@ -268,7 +267,7 @@ export default function EventDetailPage({
             <SectionTitle>Food & Drinks</SectionTitle>
             <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {visibleCats.map((cat) => (
-                <Grid item xs={12} sm={6} key={cat}>
+                <Grid size={{ xs: 12, sm: 6 }} key={cat}>
                   <FoodSection
                     category={cat}
                     items={items}

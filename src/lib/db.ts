@@ -1,4 +1,3 @@
-// src/lib/db.ts
 import {
   MongoClient,
   Collection,

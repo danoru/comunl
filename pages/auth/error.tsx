@@ -1,5 +1,4 @@
-// pages/auth/signin.tsx
-import React, { useState } from "react";
+import React from "react";
 import Head from "next/head";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -16,7 +15,7 @@ export default function SignInPage() {
   const router = useRouter();
   const site = getSiteConfig();
   const callback = (router.query.callbackUrl as string) ?? "/";
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = React.useState(false);
 
   async function handleGoogleSignIn() {
     setLoading(true);

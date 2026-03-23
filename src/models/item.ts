@@ -1,4 +1,3 @@
-// src/models/item.ts
 import { z } from "zod";
 
 // All valid itemType values in one place — add new ones here only

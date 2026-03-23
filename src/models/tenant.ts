@@ -1,4 +1,3 @@
-// src/models/tenant.ts
 import { z } from "zod";
 
 const HEX_COLOR = z

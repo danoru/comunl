@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -68,11 +68,11 @@ export default function FoodSection({
   const meta = CATEGORY_META[category];
   const categoryItems = items.filter((i) => i.itemType === category);
 
-  const [adding, setAdding] = useState(false);
-  const [value, setValue] = useState("");
-  const [submittedBy, setSubmittedBy] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [adding, setAdding] = React.useState(false);
+  const [value, setValue] = React.useState("");
+  const [submittedBy, setSubmittedBy] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   async function handleSubmit() {
     const trimmed = value.trim();
