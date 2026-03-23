@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import type { GetServerSideProps } from "next";
+import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 
 import Box from "@mui/material/Box";
@@ -8,14 +10,26 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
 
 import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
-import { getEvent, getItems } from "../../../src/lib/db";
-import { getSiteConfig } from "../../../src/models";
+import ShareButton from "../../../src/components/detail/ShareButton";
+import CommentSection from "../../../src/components/detail/CommentSection";
+import {
+  getEvent,
+  getItems,
+  getGuests,
+  getGuestCount,
+  getComments,
+  getTenant,
+} from "../../../src/lib/db";
+import { getSiteConfig, resolveAnonymousGuests } from "../../../src/models";
 import type {
   SerializedEvent,
   SerializedItem,
+  SerializedGuest,
+  SerializedComment,
   ItemType,
 } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
@@ -28,7 +42,6 @@ const FOOD_CATEGORIES: ItemType[] = [
   "drink",
   "supply",
 ];
-
 const CATEGORY_LABELS: Record<ItemType, string> = {
   main: "Mains",
   side: "Sides",
@@ -37,9 +50,8 @@ const CATEGORY_LABELS: Record<ItemType, string> = {
   drink: "Drinks",
   supply: "Supplies",
   guest: "Guests",
-  "host-rec": "Host Recommendations",
+  "host-rec": "Host Recs",
 };
-
 const CATEGORY_ICONS: Record<ItemType, string> = {
   main: "🍖",
   side: "🥗",
@@ -54,38 +66,51 @@ const CATEGORY_ICONS: Record<ItemType, string> = {
 interface EventDetailPageProps {
   event: SerializedEvent;
   initialItems: SerializedItem[];
+  initialGuests: SerializedGuest[];
+  initialComments: SerializedComment[];
+  guestCount: number;
+  allowAnonymous: boolean;
 }
 
 export default function EventDetailPage({
   event,
   initialItems,
+  initialGuests,
+  initialComments,
+  guestCount,
+  allowAnonymous,
 }: EventDetailPageProps) {
-  const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
+  const [items, setItems] = useState<SerializedItem[]>(initialItems);
+  const [guests, setGuests] = useState<SerializedGuest[]>(initialGuests);
+  const [total, setTotal] = useState(guestCount);
+  const { data: session } = useSession();
+  const isAdmin = (session as any)?.isAdmin ?? false;
 
   const eventDate = dayjs(event.date);
   const now = dayjs();
   const isPast = eventDate.isBefore(now);
   const daysUntil = eventDate.diff(now, "day");
-
   const humanDate = eventDate.format("dddd, MMMM D, YYYY");
   const timeRange = eventDate.format("h:mm A");
   const shortDate = eventDate.format("MMM D · h:mm A");
 
-  const guests = items.filter((i) => i.itemType === "guest");
   const hostRecs = items.filter((i) => i.itemType === "host-rec");
-
-  const [expandedCats, setExpandedCats] = React.useState<Set<ItemType>>(
+  const [expandedCats, setExpandedCats] = useState<Set<ItemType>>(
     new Set(
       FOOD_CATEGORIES.filter((cat) => items.some((i) => i.itemType === cat))
     )
   );
-
   const visibleCats = FOOD_CATEGORIES.filter(
     (cat) => expandedCats.has(cat) || items.some((i) => i.itemType === cat)
   );
   const hiddenCats = FOOD_CATEGORIES.filter(
     (cat) => !expandedCats.has(cat) && !items.some((i) => i.itemType === cat)
   );
+
+  function handleRSVP(guest: SerializedGuest) {
+    setGuests((prev) => [...prev, guest]);
+    setTotal((prev) => prev + guest.totalCount);
+  }
 
   return (
     <>
@@ -94,7 +119,7 @@ export default function EventDetailPage({
         <meta name="description" content={event.description || event.title} />
       </Head>
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <Box
         sx={{
           height: { xs: 300, sm: 380 },
@@ -105,7 +130,6 @@ export default function EventDetailPage({
           background: `linear-gradient(135deg, ${tokens.navy} 0%, #2D1B4E 50%, ${tokens.orange} 100%)`,
         }}
       >
-        {/* Flyer as background image */}
         {event.flyer && (
           <Box
             component="img"
@@ -122,8 +146,6 @@ export default function EventDetailPage({
             }}
           />
         )}
-
-        {/* Gradient overlay */}
         <Box
           aria-hidden
           sx={{
@@ -134,27 +156,50 @@ export default function EventDetailPage({
           }}
         />
 
-        {/* Back button */}
-        <Button
-          href="/events"
-          component="a"
-          size="small"
+        <Box
           sx={{
             position: "absolute",
             top: 16,
             left: 16,
-            color: "rgba(255,255,255,0.9)",
-            background: "rgba(0,0,0,0.35)",
-            backdropFilter: "blur(8px)",
-            borderRadius: 100,
+            right: 16,
+            display: "flex",
+            justifyContent: "space-between",
             zIndex: 2,
-            "&:hover": { background: "rgba(0,0,0,0.55)" },
           }}
         >
-          ← Events
-        </Button>
+          <Button
+            href="/events"
+            component="a"
+            size="small"
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              background: "rgba(0,0,0,0.35)",
+              backdropFilter: "blur(8px)",
+              borderRadius: 100,
+            }}
+          >
+            ← Events
+          </Button>
+          {isAdmin && (
+            <Link
+              href={`/events/${event.id}/admin`}
+              style={{ textDecoration: "none" }}
+            >
+              <Button
+                size="small"
+                sx={{
+                  color: "rgba(255,255,255,0.9)",
+                  background: "rgba(0,0,0,0.35)",
+                  backdropFilter: "blur(8px)",
+                  borderRadius: 100,
+                }}
+              >
+                ⚙ Admin
+              </Button>
+            </Link>
+          )}
+        </Box>
 
-        {/* Title */}
         <Box
           sx={{
             position: "relative",
@@ -181,7 +226,7 @@ export default function EventDetailPage({
         </Box>
       </Box>
 
-      {/* ── Body ── */}
+      {/* Body */}
       <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, pb: 8 }}>
         {/* Info bar */}
         <Box
@@ -220,6 +265,9 @@ export default function EventDetailPage({
               value={`${Math.abs(daysUntil)} days ago`}
             />
           )}
+          <Box sx={{ ml: "auto", alignSelf: "center" }}>
+            <ShareButton title={event.title} />
+          </Box>
         </Box>
 
         {/* Description */}
@@ -246,28 +294,31 @@ export default function EventDetailPage({
           </Box>
         )}
 
-        {/* RSVP bar — upcoming only */}
+        {/* RSVP */}
         {!isPast && (
           <RSVPBar
             eventId={event.id}
-            guestCount={guests.length}
+            totalCount={total}
             eventTitle={event.title}
             eventDate={shortDate}
-            onRSVP={(item) => setItems((prev) => [...prev, item])}
+            allowAnonymous={allowAnonymous}
+            onRSVP={handleRSVP}
           />
         )}
 
         {/* Guest list */}
-        <SectionTitle>Guest List ({guests.length})</SectionTitle>
-        <GuestList guests={guests} />
+        <SectionTitle>
+          Guest List ({total} {total === 1 ? "person" : "people"})
+        </SectionTitle>
+        <GuestList guests={guests} totalCount={total} />
 
-        {/* Food & drinks */}
+        {/* Food */}
         {!event.isGuestOnly && (
           <>
             <SectionTitle>Food & Drinks</SectionTitle>
             <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {visibleCats.map((cat) => (
-                <Grid size={{ xs: 12, sm: 6 }} key={cat}>
+                <Grid item xs={12} sm={6} key={cat}>
                   <FoodSection
                     category={cat}
                     items={items}
@@ -277,7 +328,6 @@ export default function EventDetailPage({
                 </Grid>
               ))}
             </Grid>
-
             {hiddenCats.length > 0 && (
               <Box
                 sx={{
@@ -322,7 +372,7 @@ export default function EventDetailPage({
           </>
         )}
 
-        {/* Host recommendations — now actually renders data! */}
+        {/* Host recs */}
         {hostRecs.length > 0 && (
           <>
             <SectionTitle>Host Recommendations</SectionTitle>
@@ -345,12 +395,15 @@ export default function EventDetailPage({
             </Box>
           </>
         )}
+
+        {/* Comments */}
+        <Divider sx={{ my: 4 }} />
+        <SectionTitle>Comments</SectionTitle>
+        <CommentSection eventId={event.id} initialComments={initialComments} />
       </Box>
     </>
   );
 }
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -410,7 +463,6 @@ function InfoCell({
       </Box>
     </Box>
   );
-
   return href ? (
     <Box
       component="a"
@@ -426,18 +478,39 @@ function InfoCell({
   );
 }
 
-// ─── Data fetching ────────────────────────────────────────────────────────────
-
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const eventId = params?.eventId as string;
   const site = getSiteConfig();
 
-  const [event, initialItems] = await Promise.all([
+  const [
+    event,
+    initialItems,
+    initialGuests,
+    initialComments,
+    guestCount,
+    tenant,
+  ] = await Promise.all([
     getEvent(site.tenantId, eventId),
     getItems(site.tenantId, eventId),
+    getGuests(site.tenantId, eventId),
+    getComments(site.tenantId, eventId),
+    getGuestCount(site.tenantId, eventId),
+    getTenant(site.tenantId),
   ]);
 
   if (!event) return { notFound: true };
 
-  return { props: { event, initialItems } };
+  const tenantDefault = tenant?.allowAnonymousGuests ?? true;
+  const allowAnonymous = resolveAnonymousGuests(event, tenantDefault);
+
+  return {
+    props: {
+      event,
+      initialItems,
+      initialGuests,
+      initialComments,
+      guestCount,
+      allowAnonymous,
+    },
+  };
 };

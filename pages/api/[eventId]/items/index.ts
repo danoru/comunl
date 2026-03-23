@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getEvent, updateEvent } from "../../../src/lib/db";
-import { getSiteConfig, UpdateEventSchema } from "../../../src/models";
+import { getEvent, updateEvent } from "../../../../src/lib/db";
+import { getSiteConfig, UpdateEventSchema } from "../../../../src/models";
 
 export default async function handler(
   req: NextApiRequest,

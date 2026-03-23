@@ -49,8 +49,9 @@ export default function HomePage({
         <ProductHero />
       )}
 
-      <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
-        {isInstance && (
+      {/* Only show event list on instance sites, not the product landing page */}
+      {isInstance && (
+        <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
           <Box sx={{ mb: 3 }}>
             <Typography
               variant="caption"
@@ -71,10 +72,11 @@ export default function HomePage({
               All Events
             </Typography>
           </Box>
-        )}
-        <EventList events={allEvents} />
-      </Box>
+          <EventList events={allEvents} />
+        </Box>
+      )}
 
+      {/* Features section only on the product landing page */}
       {!isInstance && <FeaturesSection />}
     </>
   );
@@ -119,8 +121,7 @@ function InstanceHero({
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          background: `radial-gradient(ellipse 55% 45% at 15% 60%, rgba(244,99,30,0.22), transparent 70%),
-                       radial-gradient(ellipse 40% 50% at 85% 25%, rgba(255,107,157,0.16), transparent 60%)`,
+          background: `radial-gradient(ellipse 55% 45% at 15% 60%, rgba(244,99,30,0.22), transparent 70%), radial-gradient(ellipse 40% 50% at 85% 25%, rgba(255,107,157,0.16), transparent 60%)`,
         }}
       />
 
@@ -137,7 +138,6 @@ function InstanceHero({
         >
           ✦ {siteName.toUpperCase()} ✦
         </Typography>
-
         <Typography
           variant="h1"
           sx={{ fontSize: "clamp(52px, 14vw, 100px)", color: "#fff", mb: 0.5 }}
@@ -181,7 +181,6 @@ function InstanceHero({
                 />
               )}
             </Box>
-
             <Box
               sx={{
                 display: "flex",
@@ -242,8 +241,7 @@ function ProductHero() {
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          background: `radial-gradient(ellipse 55% 45% at 15% 60%, rgba(244,99,30,0.22), transparent 70%),
-                       radial-gradient(ellipse 40% 50% at 85% 25%, rgba(255,107,157,0.16), transparent 60%)`,
+          background: `radial-gradient(ellipse 55% 45% at 15% 60%, rgba(244,99,30,0.22), transparent 70%), radial-gradient(ellipse 40% 50% at 85% 25%, rgba(255,107,157,0.16), transparent 60%)`,
         }}
       />
       <Box sx={{ position: "relative", zIndex: 1, maxWidth: 480 }}>
@@ -432,7 +430,8 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
   const [featuredEvents, allEvents] = await Promise.all([
     getFeaturedEvents(site.tenantId),
-    getEvents(site.tenantId),
+    // Only fetch all events for instance sites — product landing page doesn't need them
+    site.isInstance ? getEvents(site.tenantId) : Promise.resolve([]),
   ]);
 
   return {

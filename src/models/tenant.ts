@@ -10,17 +10,20 @@ export const TenantSchema = z.object({
   domain: z.string().min(1),
   primaryColor: HEX_COLOR.default("#F4631E"),
   accentColor: HEX_COLOR.default("#FFD166"),
+  // Tenant-level default for whether anonymous RSVPs are allowed.
+  // Individual events can override this with their own allowAnonymousGuests field.
+  allowAnonymousGuests: z.boolean().default(true),
 });
 
 export type Tenant = z.infer<typeof TenantSchema>;
 
-// Site config resolved from env vars at runtime
 export const SiteConfigSchema = z.object({
   tenantId: z.string(),
   name: z.string(),
   primaryColor: HEX_COLOR,
   accentColor: HEX_COLOR,
   isInstance: z.boolean(),
+  allowAnonymousGuests: z.boolean(),
 });
 
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;
@@ -39,5 +42,8 @@ export function getSiteConfig(): SiteConfig {
       ? process.env.NEXT_PUBLIC_ACCENT_COLOR!
       : "#FFD166",
     isInstance: !!tenantId,
+    // Tenant-level default — event-level override resolved in getEvent()
+    allowAnonymousGuests:
+      process.env.NEXT_PUBLIC_ALLOW_ANONYMOUS_GUESTS !== "false",
   };
 }

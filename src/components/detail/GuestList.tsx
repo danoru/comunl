@@ -1,17 +1,27 @@
-import React from "react";
+// src/components/detail/GuestList.tsx
+import React, { useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import Avatar from "@mui/material/Avatar";
+import Chip from "@mui/material/Chip";
+import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
+import Divider from "@mui/material/Divider";
+import Alert from "@mui/material/Alert";
 
 import CloseIcon from "@mui/icons-material/Close";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
 
-import type { SerializedItem } from "../../models";
+import type { SerializedGuest } from "../../models";
 import { tokens } from "../../styles/theme";
 
 const PIP_COLORS = [
@@ -28,10 +38,13 @@ const PIP_COLORS = [
 // ─── GuestList ────────────────────────────────────────────────────────────────
 
 interface GuestListProps {
-  guests: SerializedItem[];
+  guests: SerializedGuest[];
+  totalCount: number;
 }
 
-export function GuestList({ guests }: GuestListProps) {
+export function GuestList({ guests, totalCount }: GuestListProps) {
+  const [expandedGuest, setExpandedGuest] = useState<string | null>(null);
+
   if (guests.length === 0) {
     return (
       <Typography
@@ -45,77 +58,197 @@ export function GuestList({ guests }: GuestListProps) {
 
   return (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-      {guests.map((guest, i) => (
-        <Box
-          key={guest._id}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.875,
-            background: "#fff",
-            border: `1.5px solid ${tokens.border}`,
-            borderRadius: 100,
-            pl: 0.75,
-            pr: 1.75,
-            py: 0.625,
-          }}
-        >
-          <Box
-            sx={{
-              width: 26,
-              height: 26,
-              borderRadius: "50%",
-              background: PIP_COLORS[i % PIP_COLORS.length],
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.6875rem",
-              fontWeight: 700,
-              color: "#fff",
-              flexShrink: 0,
-            }}
-          >
-            {guest.item[0]?.toUpperCase() ?? "?"}
+      {guests.map((guest, i) => {
+        const hasAdditional = guest.additionalGuests.length > 0;
+        const namedAdditional = guest.additionalGuests.filter((g) => g.name);
+        const isExpanded = expandedGuest === guest._id;
+
+        return (
+          <Box key={guest._id}>
+            {/* Main guest chip */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                background: "#fff",
+                border: `1.5px solid ${tokens.border}`,
+                borderRadius: "100px",
+                pl: 0.625,
+                pr: hasAdditional ? 0.75 : 1.75,
+                py: 0.5,
+                cursor: hasAdditional ? "pointer" : "default",
+              }}
+              onClick={() =>
+                hasAdditional && setExpandedGuest(isExpanded ? null : guest._id)
+              }
+            >
+              {/* Avatar — from Google if available */}
+              {guest.userId ? (
+                <Avatar
+                  src={undefined} // we'd need to pass image through — see note below
+                  sx={{
+                    width: 26,
+                    height: 26,
+                    fontSize: "0.6875rem",
+                    background: PIP_COLORS[i % PIP_COLORS.length],
+                  }}
+                >
+                  {guest.displayName[0]?.toUpperCase()}
+                </Avatar>
+              ) : (
+                <Box
+                  sx={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: PIP_COLORS[i % PIP_COLORS.length],
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.6875rem",
+                    fontWeight: 700,
+                    color: "#fff",
+                    flexShrink: 0,
+                  }}
+                >
+                  {guest.displayName[0]?.toUpperCase() ?? "?"}
+                </Box>
+              )}
+
+              <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                {guest.displayName}
+              </Typography>
+
+              {/* +N badge if bringing additional guests */}
+              {hasAdditional && (
+                <Chip
+                  label={`+${guest.additionalGuests.length}`}
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    background: tokens.orangeGlow,
+                    color: tokens.orange,
+                    ml: 0.25,
+                  }}
+                />
+              )}
+
+              {/* Expand toggle if named additional guests */}
+              {namedAdditional.length > 0 && (
+                <IconButton size="small" sx={{ p: 0.25, ml: -0.25 }}>
+                  {isExpanded ? (
+                    <ExpandLessRoundedIcon
+                      sx={{ fontSize: 16, color: tokens.muted }}
+                    />
+                  ) : (
+                    <ExpandMoreRoundedIcon
+                      sx={{ fontSize: 16, color: tokens.muted }}
+                    />
+                  )}
+                </IconButton>
+              )}
+            </Box>
+
+            {/* Expanded additional guest names */}
+            {namedAdditional.length > 0 && (
+              <Collapse in={isExpanded}>
+                <Box
+                  sx={{
+                    pl: 4,
+                    pt: 0.75,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0.5,
+                  }}
+                >
+                  {namedAdditional.map((g, j) => (
+                    <Typography
+                      key={j}
+                      variant="caption"
+                      sx={{ color: tokens.muted }}
+                    >
+                      + {g.name}
+                    </Typography>
+                  ))}
+                </Box>
+              </Collapse>
+            )}
           </Box>
-          <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
-            {guest.item}
-          </Typography>
-        </Box>
-      ))}
+        );
+      })}
     </Box>
   );
 }
 
-// ─── RSVPBar + Modal ──────────────────────────────────────────────────────────
+// ─── RSVPBar ──────────────────────────────────────────────────────────────────
 
 interface RSVPBarProps {
   eventId: string;
-  guestCount: number;
+  totalCount: number;
   eventTitle: string;
   eventDate: string;
-  onRSVP: (guest: SerializedItem) => void;
+  allowAnonymous: boolean;
+  onRSVP: (guest: SerializedGuest) => void;
 }
 
 export function RSVPBar({
   eventId,
-  guestCount,
+  totalCount,
   eventTitle,
   eventDate,
+  allowAnonymous,
   onRSVP,
 }: RSVPBarProps) {
-  const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [done, setDone] = React.useState(false);
-  const [error, setError] = React.useState("");
+  const { data: session, status } = useSession();
+  const userId = (session as any)?.userId as string | undefined;
+  const isSignedIn = !!userId;
+  const userName = session?.user?.name ?? "";
+  const userImage = session?.user?.image ?? undefined;
 
-  async function handleRSVP() {
-    const trimmed = name.trim();
-    if (!trimmed) {
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"rsvp" | "additional" | "done">("rsvp");
+  const [anonName, setAnonName] = useState("");
+  const [additional, setAdditional] = useState<{ name: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleOpen() {
+    setStep("rsvp");
+    setOpen(true);
+    setError("");
+  }
+  function handleClose() {
+    setOpen(false);
+    setTimeout(() => {
+      setStep("rsvp");
+      setAnonName("");
+      setAdditional([]);
+      setError("");
+    }, 300);
+  }
+
+  function addAdditionalSlot() {
+    setAdditional((prev) => [...prev, { name: "" }]);
+  }
+
+  function updateAdditional(index: number, name: string) {
+    setAdditional((prev) => prev.map((g, i) => (i === index ? { name } : g)));
+  }
+
+  function removeAdditional(index: number) {
+    setAdditional((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleSubmit() {
+    const displayName = isSignedIn ? userName : anonName.trim();
+    if (!displayName) {
       setError("Please enter your name.");
       return;
     }
+
     setLoading(true);
     setError("");
 
@@ -123,14 +256,24 @@ export function RSVPBar({
       const res = await fetch(`/api/${eventId}/rsvp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed, email: email.trim() }),
+        body: JSON.stringify({
+          displayName,
+          additionalGuests: additional.map((g) => ({
+            name: g.name.trim() || undefined,
+          })),
+        }),
       });
 
-      if (!res.ok) throw new Error("RSVP failed");
+      if (res.status === 409) {
+        setError("You've already RSVP'd to this event!");
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) throw new Error();
 
-      const data = await res.json();
-      onRSVP(data.entry);
-      setDone(true);
+      const guest: SerializedGuest = await res.json();
+      onRSVP(guest);
+      setStep("done");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -138,15 +281,10 @@ export function RSVPBar({
     }
   }
 
-  function handleClose() {
-    setOpen(false);
-    setTimeout(() => {
-      setDone(false);
-      setName("");
-      setEmail("");
-      setError("");
-    }, 300);
-  }
+  const countLabel =
+    totalCount === 1
+      ? "1 person has RSVP'd"
+      : `${totalCount} people have RSVP'd`;
 
   return (
     <>
@@ -171,16 +309,15 @@ export function RSVPBar({
           <Typography
             sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}
           >
-            {guestCount} {guestCount === 1 ? "person has" : "people have"}{" "}
-            RSVP'd
+            {countLabel}
           </Typography>
         </Box>
         <Button
           variant="contained"
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
-          RSVP Now →
+          I'm Attending →
         </Button>
       </Box>
 
@@ -210,10 +347,10 @@ export function RSVPBar({
           }}
         >
           <Box>
-            <Typography variant="h3" sx={{ fontSize: "2rem" }}>
-              {done ? "You're in! 🎉" : "RSVP"}
+            <Typography variant="h3" sx={{ fontSize: "1.75rem" }}>
+              {step === "done" ? "You're in! 🎉" : "RSVP"}
             </Typography>
-            {!done && (
+            {step !== "done" && (
               <Typography variant="caption">
                 {eventTitle} · {eventDate}
               </Typography>
@@ -225,51 +362,194 @@ export function RSVPBar({
         </DialogTitle>
 
         <DialogContent sx={{ pt: 2 }}>
-          {done ? (
+          {step === "done" ? (
             <Box sx={{ textAlign: "center", py: 3 }}>
-              <Typography sx={{ fontSize: "3.5rem", mb: 1.5 }}>🎉</Typography>
+              <Typography sx={{ fontSize: "3rem", mb: 1.5 }}>🎉</Typography>
               <Typography sx={{ color: tokens.muted, mb: 3 }}>
-                See you at {eventTitle}! We'll send updates if anything changes.
+                See you at {eventTitle}!
+                {additional.length > 0 &&
+                  ` You're bringing ${additional.length} additional ${additional.length === 1 ? "guest" : "guests"}.`}
               </Typography>
               <Button variant="contained" fullWidth onClick={handleClose}>
                 Close
               </Button>
             </Box>
-          ) : (
+          ) : step === "additional" ? (
             <Box
               sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}
             >
-              <TextField
-                label="Your name *"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleRSVP()}
-                fullWidth
-                autoFocus
-                error={!!error && !name.trim()}
-              />
-              <TextField
-                label="Email for updates (optional)"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                fullWidth
-              />
-              {error && (
-                <Typography variant="caption" color="error">
-                  {error}
-                </Typography>
-              )}
+              <Typography sx={{ color: tokens.muted, fontSize: "0.9375rem" }}>
+                Are you bringing anyone else? Add them below, or leave names
+                blank for anonymous guests.
+              </Typography>
+
+              {additional.map((g, i) => (
+                <Box
+                  key={i}
+                  sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                >
+                  <TextField
+                    size="small"
+                    placeholder={`Guest ${i + 1} name (optional)`}
+                    value={g.name}
+                    onChange={(e) => updateAdditional(i, e.target.value)}
+                    fullWidth
+                  />
+                  <IconButton size="small" onClick={() => removeAdditional(i)}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddRoundedIcon />}
+                onClick={addAdditionalSlot}
+                sx={{
+                  alignSelf: "flex-start",
+                  borderRadius: 100,
+                  borderColor: tokens.border,
+                  color: tokens.muted,
+                }}
+              >
+                Add another guest
+              </Button>
+
+              <Divider sx={{ my: 0.5 }} />
+
               <Button
                 variant="contained"
                 size="large"
-                onClick={handleRSVP}
+                onClick={handleSubmit}
                 disabled={loading}
                 fullWidth
-                sx={{ mt: 0.5 }}
               >
-                {loading ? "Saving…" : "I'm Coming! 🎉"}
+                {loading ? "Saving…" : "Confirm RSVP →"}
               </Button>
+              <Button
+                variant="text"
+                onClick={handleSubmit}
+                disabled={loading}
+                sx={{ color: tokens.muted, fontSize: "0.8125rem" }}
+              >
+                Just me — skip this
+              </Button>
+            </Box>
+          ) : (
+            // Step 1: identity
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}
+            >
+              {/* Signed in — show profile */}
+              {isSignedIn ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    background: tokens.creamDark,
+                    borderRadius: "12px",
+                    p: "12px 16px",
+                  }}
+                >
+                  <Avatar src={userImage} sx={{ width: 40, height: 40 }}>
+                    {userName[0]?.toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem" }}>
+                      {userName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: tokens.muted }}>
+                      RSVP'ing as yourself
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : allowAnonymous ? (
+                // Anonymous fallback
+                <TextField
+                  label="Your name *"
+                  value={anonName}
+                  onChange={(e) => setAnonName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && setStep("additional")}
+                  fullWidth
+                  autoFocus
+                  error={!!error}
+                />
+              ) : (
+                // Auth required
+                <Box sx={{ textAlign: "center", py: 2 }}>
+                  <Typography sx={{ mb: 2, color: tokens.muted }}>
+                    You need to sign in to RSVP for this event.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => signIn("google")}
+                  >
+                    Sign in with Google
+                  </Button>
+                </Box>
+              )}
+
+              {/* Sign in nudge for anonymous flow */}
+              {!isSignedIn && allowAnonymous && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    background: tokens.creamDark,
+                    borderRadius: "10px",
+                    p: "10px 14px",
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ color: tokens.muted, flex: 1 }}
+                  >
+                    Sign in to track your event history and save your info.
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => signIn("google")}
+                    sx={{
+                      whiteSpace: "nowrap",
+                      borderRadius: 100,
+                      borderColor: tokens.border,
+                      color: tokens.navy,
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    Sign in
+                  </Button>
+                </Box>
+              )}
+
+              {error && (
+                <Alert severity="error" sx={{ borderRadius: "10px" }}>
+                  {error}
+                </Alert>
+              )}
+
+              {(isSignedIn || allowAnonymous) && (
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => {
+                    if (!isSignedIn && !anonName.trim()) {
+                      setError("Please enter your name.");
+                      return;
+                    }
+                    setError("");
+                    setStep("additional");
+                  }}
+                  fullWidth
+                >
+                  Next →
+                </Button>
+              )}
             </Box>
           )}
         </DialogContent>

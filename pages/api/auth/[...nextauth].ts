@@ -1,5 +1,8 @@
+// pages/api/auth/[...nextauth].ts
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { upsertUser } from "../../../src/lib/db";
+import { getSiteConfig } from "../../../src/models";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
   .split(",")
@@ -15,20 +18,42 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    // Block sign-in if email isn't in the allowlist
-    async signIn({ user }) {
-      const email = user.email?.toLowerCase() ?? "";
-      if (!ADMIN_EMAILS.includes(email)) {
-        // Returning false redirects to /api/auth/error?error=AccessDenied
-        return false;
+    // All Google accounts can sign in — admin check happens separately
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+
+      // Upsert user record in DB on every sign-in to keep profile fresh
+      try {
+        const { tenantId } = getSiteConfig();
+        await upsertUser({
+          userId: account!.providerAccountId,
+          tenantId,
+          email: user.email,
+          name: user.name ?? user.email.split("@")[0],
+          image: user.image ?? undefined,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      } catch (e) {
+        console.error("[auth] Failed to upsert user:", e);
+        // Don't block sign-in if DB write fails
       }
+
       return true;
     },
 
-    // Expose isAdmin on the session so components can check it
-    async session({ session }) {
-      const email = session.user?.email?.toLowerCase() ?? "";
-      (session as any).isAdmin = ADMIN_EMAILS.includes(email);
+    async jwt({ token, account, user }) {
+      // Persist the Google account ID on the JWT so we can use it as userId
+      if (account) {
+        token.userId = account.providerAccountId;
+        token.isAdmin = ADMIN_EMAILS.includes(user?.email?.toLowerCase() ?? "");
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      (session as any).userId = token.userId;
+      (session as any).isAdmin = token.isAdmin ?? false;
       return session;
     },
   },
