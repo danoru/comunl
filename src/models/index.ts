@@ -16,6 +16,7 @@ export {
   CreateItemSchema,
   SerializedItemSchema,
   LEGACY_ITEM_TYPE_MAP,
+  resolveItemAttribution,
   serializeItem,
 } from "./item";
 export type { ItemType, Item, CreateItem, SerializedItem } from "./item";

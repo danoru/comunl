@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,59 +13,43 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 
 import type { ItemType, SerializedItem } from "../../models";
+import { resolveItemAttribution } from "../../models";
 import { tokens } from "../../styles/theme";
 
-// ─── Category metadata ────────────────────────────────────────────────────────
-
 const CATEGORY_META: Record<ItemType, { label: string; icon: string; placeholder: string }> = {
-  main: {
-    label: "Main Dishes",
-    icon: "🍖",
-    placeholder: "e.g. BBQ ribs, pasta salad…",
-  },
-  side: {
-    label: "Side Dishes",
-    icon: "🥗",
-    placeholder: "e.g. coleslaw, beans…",
-  },
+  main: { label: "Main Dishes", icon: "🍖", placeholder: "e.g. BBQ ribs, pasta salad…" },
+  side: { label: "Side Dishes", icon: "🥗", placeholder: "e.g. coleslaw, beans…" },
   snack: { label: "Snacks", icon: "🍿", placeholder: "e.g. chips, dip…" },
-  dessert: {
-    label: "Desserts",
-    icon: "🍰",
-    placeholder: "e.g. cake, cookies…",
-  },
+  dessert: { label: "Desserts", icon: "🍰", placeholder: "e.g. cake, cookies…" },
   drink: { label: "Drinks", icon: "🍺", placeholder: "e.g. beer, lemonade…" },
-  supply: {
-    label: "Supplies",
-    icon: "🛒",
-    placeholder: "e.g. paper plates, cups…",
-  },
-  guest: { label: "Guests", icon: "👤", placeholder: "Guest name…" },
-  "host-rec": {
-    label: "Host Recommendations",
-    icon: "⭐",
-    placeholder: "e.g. bring a bottle…",
-  },
+  supply: { label: "Supplies", icon: "🛒", placeholder: "e.g. paper plates, cups…" },
+  "host-rec": { label: "Host Recs", icon: "⭐", placeholder: "e.g. bring a bottle…" },
 };
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface FoodSectionProps {
   category: ItemType;
   items: SerializedItem[];
   eventId: string;
+  // The RSVP name entered by an anonymous guest — used for attribution
+  guestName?: string;
   onItemAdded: (item: SerializedItem) => void;
 }
 
-export default function FoodSection({ category, items, eventId, onItemAdded }: FoodSectionProps) {
+export default function FoodSection({
+  category,
+  items,
+  eventId,
+  guestName,
+  onItemAdded,
+}: FoodSectionProps) {
+  const { data: session } = useSession();
   const meta = CATEGORY_META[category];
   const categoryItems = items.filter((i) => i.itemType === category);
 
-  const [adding, setAdding] = React.useState(false);
-  const [value, setValue] = React.useState("");
-  const [submittedBy, setSubmittedBy] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
+  const [adding, setAdding] = useState(false);
+  const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit() {
     const trimmed = value.trim();
@@ -79,7 +64,8 @@ export default function FoodSection({ category, items, eventId, onItemAdded }: F
         body: JSON.stringify({
           item: trimmed,
           itemType: category,
-          submittedBy: submittedBy.trim() || undefined,
+          // Pass the guest's RSVP name for attribution if not signed in
+          guestName: session ? undefined : (guestName ?? "Guest"),
         }),
       });
 
@@ -88,7 +74,6 @@ export default function FoodSection({ category, items, eventId, onItemAdded }: F
       const newItem: SerializedItem = await res.json();
       onItemAdded(newItem);
       setValue("");
-      setSubmittedBy("");
       setAdding(false);
     } catch {
       setError("Couldn't save — please try again.");
@@ -135,27 +120,30 @@ export default function FoodSection({ category, items, eventId, onItemAdded }: F
         </IconButton>
       </Box>
 
-      {/* Existing items */}
-      {categoryItems.map((item, i) => (
-        <Box key={item._id}>
-          {i > 0 && <Divider sx={{ my: 0.5 }} />}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              py: 0.75,
-            }}
-          >
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>{item.item}</Typography>
-            {item.submittedBy && (
-              <Typography variant="caption" sx={{ color: tokens.muted }}>
-                {item.submittedBy}
-              </Typography>
-            )}
+      {/* Items with attribution */}
+      {categoryItems.map((item, i) => {
+        const who = resolveItemAttribution(item);
+        return (
+          <Box key={item._id}>
+            {i > 0 && <Divider sx={{ my: 0.5 }} />}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                py: 0.75,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>{item.item}</Typography>
+              {who && (
+                <Typography variant="caption" sx={{ color: tokens.muted, flexShrink: 0, ml: 1 }}>
+                  {who}
+                </Typography>
+              )}
+            </Box>
           </Box>
-        </Box>
-      ))}
+        );
+      })}
 
       {categoryItems.length === 0 && !adding && (
         <Typography
@@ -176,13 +164,6 @@ export default function FoodSection({ category, items, eventId, onItemAdded }: F
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             autoFocus
-            fullWidth
-          />
-          <TextField
-            size="small"
-            placeholder="Your name (optional)"
-            value={submittedBy}
-            onChange={(e) => setSubmittedBy(e.target.value)}
             fullWidth
           />
           {error && (

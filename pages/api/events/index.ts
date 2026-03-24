@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getEvents, createEvent } from "../../../src/lib/db";
 import { getSiteConfig, CreateEventSchema } from "../../../src/models";
+import { generateEventId, generateInviteCode } from "../../../src/lib/nanoid";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { tenantId } = getSiteConfig();
@@ -19,17 +20,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Generate a simple event id from title + timestamp
-    const id =
-      result.data.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-        .slice(0, 20) +
-      "-" +
-      Date.now().toString(36);
+    // Generate a short random ID — e.g. "xK7mP2"
+    const id = generateEventId();
 
-    const event = await createEvent(tenantId, { ...result.data, id });
+    // If the event is private and no invite code was provided, generate one
+    const inviteCode = result.data.isPrivate
+      ? result.data.inviteCode || generateInviteCode()
+      : null;
+
+    const event = await createEvent(tenantId, {
+      ...result.data,
+      id,
+      inviteCode,
+    });
+
     return res.status(201).json(event);
   }
 

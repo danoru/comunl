@@ -11,14 +11,12 @@ export const EventSchema = z.object({
   flyer: z.string().default(""),
   isFeatured: z.boolean().default(false),
   isGuestOnly: z.boolean().default(false),
-  // null = use tenant default, true/false = event-level override
   allowAnonymousGuests: z.boolean().nullable().default(null),
+  isPrivate: z.boolean().default(false),
+  inviteCode: z.string().nullable().default(null),
 });
 
-export const CreateEventSchema = EventSchema.omit({
-  id: true,
-  tenantId: true,
-}).extend({
+export const CreateEventSchema = EventSchema.omit({ id: true, tenantId: true }).extend({
   date: z.coerce.date(),
 });
 
@@ -43,8 +41,6 @@ export function serializeEvent(doc: Event & { _id: { toString(): string } }): Se
   };
 }
 
-// Resolve whether anonymous guests are allowed for a specific event,
-// given the tenant default. Called server-side in getServerSideProps.
 export function resolveAnonymousGuests(event: SerializedEvent, tenantDefault: boolean): boolean {
   if (event.allowAnonymousGuests === null) return tenantDefault;
   return event.allowAnonymousGuests;

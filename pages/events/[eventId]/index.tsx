@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import Head from "next/head";
-import Link from "next/link";
-import type { GetServerSideProps } from "next";
-import { useSession } from "next-auth/react";
-import dayjs from "dayjs";
-
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import { parse as parseCookies } from "cookie";
+import React, { useState } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import type { GetServerSideProps } from "next";
+import { useSession } from "next-auth/react";
+import dayjs from "dayjs";
 
 import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
@@ -42,7 +42,6 @@ const CATEGORY_LABELS: Record<ItemType, string> = {
   dessert: "Desserts",
   drink: "Drinks",
   supply: "Supplies",
-  guest: "Guests",
   "host-rec": "Host Recs",
 };
 const CATEGORY_ICONS: Record<ItemType, string> = {
@@ -52,7 +51,6 @@ const CATEGORY_ICONS: Record<ItemType, string> = {
   dessert: "🍰",
   drink: "🍺",
   supply: "🛒",
-  guest: "👤",
   "host-rec": "⭐",
 };
 
@@ -455,21 +453,45 @@ function InfoCell({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
   const eventId = params?.eventId as string;
   const site = getSiteConfig();
 
-  const [event, initialItems, initialGuests, initialComments, guestCount, tenant] =
-    await Promise.all([
-      getEvent(site.tenantId, eventId),
-      getItems(site.tenantId, eventId),
-      getGuests(site.tenantId, eventId),
-      getComments(site.tenantId, eventId),
-      getGuestCount(site.tenantId, eventId),
-      getTenant(site.tenantId),
-    ]);
-
+  const event = await getEvent(site.tenantId, eventId);
   if (!event) return { notFound: true };
+
+  // ── Private event access check ────────────────────────────────────────────
+  if (event.isPrivate && event.inviteCode) {
+    const cookies = parseCookies(req.headers.cookie ?? "");
+    const cookieName = `invite_${eventId}`;
+    const submitted = cookies[cookieName]?.toUpperCase();
+    const valid = submitted === event.inviteCode.toUpperCase();
+
+    if (!valid) {
+      // Return only the title — no details, no guest list, nothing else
+      return {
+        props: {
+          event: { id: event.id, title: event.title },
+          isLocked: true,
+          // empty placeholders so TypeScript is happy
+          initialItems: [],
+          initialGuests: [],
+          initialComments: [],
+          guestCount: 0,
+          allowAnonymous: false,
+        },
+      };
+    }
+  }
+
+  // ── Full data fetch for unlocked events ───────────────────────────────────
+  const [initialItems, initialGuests, initialComments, guestCount, tenant] = await Promise.all([
+    getItems(site.tenantId, eventId),
+    getGuests(site.tenantId, eventId),
+    getComments(site.tenantId, eventId),
+    getGuestCount(site.tenantId, eventId),
+    getTenant(site.tenantId),
+  ]);
 
   const tenantDefault = tenant?.allowAnonymousGuests ?? true;
   const allowAnonymous = resolveAnonymousGuests(event, tenantDefault);
@@ -477,6 +499,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   return {
     props: {
       event,
+      isLocked: false,
       initialItems,
       initialGuests,
       initialComments,
