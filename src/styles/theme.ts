@@ -1,6 +1,3 @@
-// Note: createEmotionCache.tsx is no longer needed and can be deleted.
-// @mui/material-nextjs handles the emotion cache automatically.
-
 import { createTheme } from "@mui/material/styles";
 
 // Validate hex format before passing to MUI — an empty string or malformed

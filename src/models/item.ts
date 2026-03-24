@@ -20,10 +20,7 @@ export const LEGACY_ITEM_TYPE_MAP: Record<string, ItemType> = {
   drink: "drink",
   supply: "supply",
   supplies: "supply",
-  "host-recommendation": "host-rec",
-  "host-recommendations": "host-rec",
   recommendation: "host-rec",
-  recommendations: "host-rec",
 };
 
 export const ItemSchema = z.object({

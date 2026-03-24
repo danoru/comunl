@@ -1,66 +1,67 @@
-import React, { useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  FormControlLabel,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import React from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import dayjs, { Dayjs } from "dayjs";
 
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Divider from "@mui/material/Divider";
-import Alert from "@mui/material/Alert";
-import Chip from "@mui/material/Chip";
-import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-
 import { adminGuard } from "../../../src/lib/auth";
-import { getEvent, getItems } from "../../../src/lib/db";
+import { getEvent, getGuests, getItems } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
-import type { SerializedEvent, SerializedItem } from "../../../src/models";
+import type { SerializedEvent, SerializedGuest, SerializedItem } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
 
 interface AdminPageProps {
   event: SerializedEvent;
+  initialGuests: SerializedGuest[];
   initialItems: SerializedItem[];
 }
 
-export default function AdminPage({ event, initialItems }: AdminPageProps) {
+export default function AdminPage({ event, initialGuests, initialItems }: AdminPageProps) {
   const router = useRouter();
 
   // ── Edit form state ──────────────────────────────────────────────────────
-  const [title, setTitle] = useState(event.title);
-  const [description, setDescription] = useState(event.description ?? "");
-  const [location, setLocation] = useState(event.location);
-  const [date, setDate] = useState<Dayjs | null>(dayjs(event.date));
-  const [flyer, setFlyer] = useState(event.flyer ?? "");
-  const [image, setImage] = useState(event.image ?? "");
-  const [isFeatured, setIsFeatured] = useState(event.isFeatured);
-  const [isGuestOnly, setIsGuestOnly] = useState(event.isGuestOnly);
+  const [title, setTitle] = React.useState(event.title);
+  const [description, setDescription] = React.useState(event.description ?? "");
+  const [location, setLocation] = React.useState(event.location);
+  const [date, setDate] = React.useState<Dayjs | null>(dayjs(event.date));
+  const [flyer, setFlyer] = React.useState(event.flyer ?? "");
+  const [image, setImage] = React.useState(event.image ?? "");
+  const [isFeatured, setIsFeatured] = React.useState(event.isFeatured);
+  const [isGuestOnly, setIsGuestOnly] = React.useState(event.isGuestOnly);
 
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [saveError, setSaveError] = React.useState("");
+  const [saveSuccess, setSaveSuccess] = React.useState(false);
 
   // ── Host recs state ──────────────────────────────────────────────────────
-  const [items, setItems] = useState<SerializedItem[]>(initialItems);
-  const [newRec, setNewRec] = useState("");
-  const [addingRec, setAddingRec] = useState(false);
+  const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
+  const [guests, setGuests] = React.useState<SerializedGuest[]>(initialGuests);
+  const [newRec, setNewRec] = React.useState("");
+  const [addingRec, setAddingRec] = React.useState(false);
 
   // ── Delete dialog ────────────────────────────────────────────────────────
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState("");
-  const [deleting, setDeleting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteConfirm, setDeleteConfirm] = React.useState("");
+  const [deleting, setDeleting] = React.useState(false);
 
   const hostRecs = items.filter((i) => i.itemType === "host-rec");
   const flyerValid = /^https?:\/\/(i\.)?imgur\.com\/.+/i.test(flyer);
@@ -406,22 +407,20 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
         <Divider sx={{ my: 3 }} />
 
         {/* ── Guest list ── */}
-        <SectionLabel>
-          Guest List ({items.filter((i) => i.itemType === "guest").length})
-        </SectionLabel>
+        <SectionLabel>Guest List ({guests.length})</SectionLabel>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 4 }}>
-          {items.filter((i) => i.itemType === "guest").length === 0 && (
+          {guests.length === 0 && (
             <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
               No guests yet
             </Typography>
           )}
-          {items
-            .filter((i) => i.itemType === "guest")
+          {guests
+            .filter((g) => g._id === "guest")
             .map((guest) => (
               <Chip
                 key={guest._id}
-                label={guest.item}
+                label={guest.displayName}
                 onDelete={() => handleRemoveItem(guest._id)}
                 sx={{
                   background: "#fff",
@@ -564,12 +563,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const eventId = context.params?.eventId as string;
   const site = getSiteConfig();
 
-  const [event, initialItems] = await Promise.all([
+  const [event, initialGuests, initialItems] = await Promise.all([
     getEvent(site.tenantId, eventId),
+    getGuests(site.tenantId, eventId),
     getItems(site.tenantId, eventId),
   ]);
 
   if (!event) return { notFound: true };
 
-  return { props: { event, initialItems } };
+  return { props: { event, initialGuests, initialItems } };
 };
