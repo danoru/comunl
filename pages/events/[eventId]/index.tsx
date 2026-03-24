@@ -300,7 +300,7 @@ export default function EventDetailPage({
             <SectionTitle>Food & Drinks</SectionTitle>
             <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {visibleCats.map((cat) => (
-                <Grid item xs={12} sm={6} key={cat}>
+                <Grid size={{ xs: 12, sm: 6 }} key={cat}>
                   <FoodSection
                     category={cat}
                     items={items}
