@@ -29,10 +29,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithSession) {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Head>
             <meta charSet="utf-8" />
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1"
-            />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
             <meta name="theme-color" content={theme.palette.secondary.main} />
             <link rel="shortcut icon" href="/favicon.ico" />
           </Head>

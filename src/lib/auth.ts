@@ -21,9 +21,7 @@ export async function requireAdmin(
   if (!session || !(session as any).isAdmin) {
     (context.res as any).__nextAuth = {
       redirect: {
-        destination: `/auth/signin?callbackUrl=${encodeURIComponent(
-          context.resolvedUrl
-        )}`,
+        destination: `/auth/signin?callbackUrl=${encodeURIComponent(context.resolvedUrl)}`,
         permanent: false,
       },
     };
@@ -48,9 +46,7 @@ export async function adminGuard(
   if (!session || !(session as any).isAdmin) {
     return {
       redirect: {
-        destination: `/auth/signin?callbackUrl=${encodeURIComponent(
-          context.resolvedUrl
-        )}`,
+        destination: `/auth/signin?callbackUrl=${encodeURIComponent(context.resolvedUrl)}`,
         permanent: false,
       },
     };

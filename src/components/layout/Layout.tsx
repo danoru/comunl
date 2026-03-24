@@ -262,8 +262,7 @@ export default function Layout({ siteConfig, children }: LayoutProps) {
       >
         {siteConfig.isInstance && <PoweredBy />}
         <Typography variant="caption">
-          © {new Date().getFullYear()}{" "}
-          {siteConfig.isInstance ? siteConfig.name : "Comunl"}
+          © {new Date().getFullYear()} {siteConfig.isInstance ? siteConfig.name : "Comunl"}
         </Typography>
       </Box>
 

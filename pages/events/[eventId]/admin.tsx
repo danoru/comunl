@@ -179,10 +179,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
             >
               ADMIN
             </Typography>
-            <Typography
-              variant="h1"
-              sx={{ fontSize: "clamp(28px, 7vw, 44px)", lineHeight: 1 }}
-            >
+            <Typography variant="h1" sx={{ fontSize: "clamp(28px, 7vw, 44px)", lineHeight: 1 }}>
               {event.title}
             </Typography>
           </Box>
@@ -316,9 +313,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
                 <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
                   Featured event
                 </Typography>
-                <Typography variant="caption">
-                  Shows on the homepage hero
-                </Typography>
+                <Typography variant="caption">Shows on the homepage hero</Typography>
               </Box>
             }
             sx={{ py: 1 }}
@@ -344,9 +339,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
                 <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
                   Guest list only
                 </Typography>
-                <Typography variant="caption">
-                  Hides food/drink sections
-                </Typography>
+                <Typography variant="caption">Hides food/drink sections</Typography>
               </Box>
             }
             sx={{ py: 1 }}
@@ -371,10 +364,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
           {hostRecs.length === 0 && (
-            <Typography
-              variant="caption"
-              sx={{ color: tokens.muted, fontStyle: "italic" }}
-            >
+            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
               No recommendations yet
             </Typography>
           )}
@@ -422,10 +412,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 4 }}>
           {items.filter((i) => i.itemType === "guest").length === 0 && (
-            <Typography
-              variant="caption"
-              sx={{ color: tokens.muted, fontStyle: "italic" }}
-            >
+            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
               No guests yet
             </Typography>
           )}
@@ -446,46 +433,40 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
         </Box>
 
         {/* ── Food items ── */}
-        {(["main", "side", "snack", "dessert", "drink", "supply"] as const).map(
-          (cat) => {
-            const catItems = items.filter((i) => i.itemType === cat);
-            if (catItems.length === 0) return null;
-            return (
-              <Box key={cat} sx={{ mb: 2 }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontFamily: '"Bebas Neue", sans-serif',
-                    letterSpacing: "0.15em",
-                    color: tokens.muted,
-                    display: "block",
-                    mb: 1,
-                  }}
-                >
-                  {cat.toUpperCase()}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {catItems.map((item) => (
-                    <Chip
-                      key={item._id}
-                      label={
-                        item.submittedBy
-                          ? `${item.item} (${item.submittedBy})`
-                          : item.item
-                      }
-                      onDelete={() => handleRemoveItem(item._id)}
-                      sx={{
-                        background: "#fff",
-                        border: `1.5px solid ${tokens.border}`,
-                        fontWeight: 500,
-                      }}
-                    />
-                  ))}
-                </Box>
+        {(["main", "side", "snack", "dessert", "drink", "supply"] as const).map((cat) => {
+          const catItems = items.filter((i) => i.itemType === cat);
+          if (catItems.length === 0) return null;
+          return (
+            <Box key={cat} sx={{ mb: 2 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: '"Bebas Neue", sans-serif',
+                  letterSpacing: "0.15em",
+                  color: tokens.muted,
+                  display: "block",
+                  mb: 1,
+                }}
+              >
+                {cat.toUpperCase()}
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {catItems.map((item) => (
+                  <Chip
+                    key={item._id}
+                    label={item.submittedBy ? `${item.item} (${item.submittedBy})` : item.item}
+                    onDelete={() => handleRemoveItem(item._id)}
+                    sx={{
+                      background: "#fff",
+                      border: `1.5px solid ${tokens.border}`,
+                      fontWeight: 500,
+                    }}
+                  />
+                ))}
               </Box>
-            );
-          }
-        )}
+            </Box>
+          );
+        })}
 
         <Divider sx={{ my: 3 }} />
 
@@ -500,12 +481,9 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
             p: 2.5,
           }}
         >
-          <Typography sx={{ fontWeight: 600, mb: 0.5 }}>
-            Delete this event
-          </Typography>
+          <Typography sx={{ fontWeight: 600, mb: 0.5 }}>Delete this event</Typography>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            The event will be hidden from all pages. Guest and food history is
-            preserved.
+            The event will be hidden from all pages. Guest and food history is preserved.
           </Typography>
           <Button
             variant="outlined"
@@ -525,9 +503,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
         onClose={() => setDeleteOpen(false)}
         PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
       >
-        <DialogTitle
-          sx={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: "1.5rem" }}
-        >
+        <DialogTitle sx={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: "1.5rem" }}>
           Delete "{event.title}"?
         </DialogTitle>
         <DialogContent>
@@ -543,10 +519,7 @@ export default function AdminPage({ event, initialItems }: AdminPageProps) {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button
-            onClick={() => setDeleteOpen(false)}
-            sx={{ borderRadius: 100 }}
-          >
+          <Button onClick={() => setDeleteOpen(false)} sx={{ borderRadius: 100 }}>
             Cancel
           </Button>
           <Button

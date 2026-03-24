@@ -16,10 +16,7 @@ import { tokens } from "../../styles/theme";
 
 // ─── Category metadata ────────────────────────────────────────────────────────
 
-const CATEGORY_META: Record<
-  ItemType,
-  { label: string; icon: string; placeholder: string }
-> = {
+const CATEGORY_META: Record<ItemType, { label: string; icon: string; placeholder: string }> = {
   main: {
     label: "Main Dishes",
     icon: "🍖",
@@ -59,12 +56,7 @@ interface FoodSectionProps {
   onItemAdded: (item: SerializedItem) => void;
 }
 
-export default function FoodSection({
-  category,
-  items,
-  eventId,
-  onItemAdded,
-}: FoodSectionProps) {
+export default function FoodSection({ category, items, eventId, onItemAdded }: FoodSectionProps) {
   const meta = CATEGORY_META[category];
   const categoryItems = items.filter((i) => i.itemType === category);
 
@@ -125,9 +117,7 @@ export default function FoodSection({
           mb: categoryItems.length > 0 || adding ? 1 : 0,
         }}
       >
-        <Typography
-          sx={{ fontSize: "0.8125rem", fontWeight: 700, color: tokens.navy }}
-        >
+        <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: tokens.navy }}>
           {meta.icon} {meta.label}
         </Typography>
         <IconButton
@@ -141,11 +131,7 @@ export default function FoodSection({
             "&:hover": { background: tokens.orangeGlow },
           }}
         >
-          {adding ? (
-            <CloseIcon sx={{ fontSize: 14 }} />
-          ) : (
-            <AddIcon sx={{ fontSize: 14 }} />
-          )}
+          {adding ? <CloseIcon sx={{ fontSize: 14 }} /> : <AddIcon sx={{ fontSize: 14 }} />}
         </IconButton>
       </Box>
 
@@ -161,9 +147,7 @@ export default function FoodSection({
               py: 0.75,
             }}
           >
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
-              {item.item}
-            </Typography>
+            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>{item.item}</Typography>
             {item.submittedBy && (
               <Typography variant="caption" sx={{ color: tokens.muted }}>
                 {item.submittedBy}

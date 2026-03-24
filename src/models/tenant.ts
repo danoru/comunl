@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-const HEX_COLOR = z
-  .string()
-  .regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color e.g. #F4631E");
+const HEX_COLOR = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color e.g. #F4631E");
 
 export const TenantSchema = z.object({
   tenantId: z.string().min(1),
@@ -43,7 +41,6 @@ export function getSiteConfig(): SiteConfig {
       : "#FFD166",
     isInstance: !!tenantId,
     // Tenant-level default — event-level override resolved in getEvent()
-    allowAnonymousGuests:
-      process.env.NEXT_PUBLIC_ALLOW_ANONYMOUS_GUESTS !== "false",
+    allowAnonymousGuests: process.env.NEXT_PUBLIC_ALLOW_ANONYMOUS_GUESTS !== "false",
   };
 }

@@ -35,9 +35,7 @@ export const SerializedEventSchema = EventSchema.extend({
 
 export type SerializedEvent = z.infer<typeof SerializedEventSchema>;
 
-export function serializeEvent(
-  doc: Event & { _id: { toString(): string } }
-): SerializedEvent {
+export function serializeEvent(doc: Event & { _id: { toString(): string } }): SerializedEvent {
   return {
     ...doc,
     _id: doc._id.toString(),
@@ -47,10 +45,7 @@ export function serializeEvent(
 
 // Resolve whether anonymous guests are allowed for a specific event,
 // given the tenant default. Called server-side in getServerSideProps.
-export function resolveAnonymousGuests(
-  event: SerializedEvent,
-  tenantDefault: boolean
-): boolean {
+export function resolveAnonymousGuests(event: SerializedEvent, tenantDefault: boolean): boolean {
   if (event.allowAnonymousGuests === null) return tenantDefault;
   return event.allowAnonymousGuests;
 }

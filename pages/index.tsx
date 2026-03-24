@@ -43,11 +43,7 @@ export default function HomePage({
         />
       </Head>
 
-      {isInstance ? (
-        <InstanceHero featured={featured} siteName={siteName} />
-      ) : (
-        <ProductHero />
-      )}
+      {isInstance ? <InstanceHero featured={featured} siteName={siteName} /> : <ProductHero />}
 
       {/* Only show event list on instance sites, not the product landing page */}
       {isInstance && (
@@ -65,10 +61,7 @@ export default function HomePage({
             >
               {siteName.toUpperCase()}
             </Typography>
-            <Typography
-              variant="h2"
-              sx={{ fontSize: "clamp(32px, 7vw, 48px)" }}
-            >
+            <Typography variant="h2" sx={{ fontSize: "clamp(32px, 7vw, 48px)" }}>
               All Events
             </Typography>
           </Box>
@@ -189,10 +182,7 @@ function InstanceHero({
                 flexWrap: "wrap",
               }}
             >
-              <Link
-                href={`/events/${featured.id}`}
-                style={{ textDecoration: "none" }}
-              >
+              <Link href={`/events/${featured.id}`} style={{ textDecoration: "none" }}>
                 <Button variant="contained" size="large">
                   RSVP Now →
                 </Button>
@@ -276,8 +266,8 @@ function ProductHero() {
             mb: 4,
           }}
         >
-          Plan parties. Track RSVPs. Coordinate who's bringing what. No accounts
-          required for guests.
+          Plan parties. Track RSVPs. Coordinate who's bringing what. No accounts required for
+          guests.
         </Typography>
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
           <Link href="/events/new" style={{ textDecoration: "none" }}>
@@ -367,10 +357,7 @@ function FeaturesSection() {
       >
         WHY COMUNL
       </Typography>
-      <Typography
-        variant="h2"
-        sx={{ fontSize: "clamp(36px, 7vw, 56px)", mb: 6 }}
-      >
+      <Typography variant="h2" sx={{ fontSize: "clamp(36px, 7vw, 56px)", mb: 6 }}>
         Everything your
         <br />
         party needs.

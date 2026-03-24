@@ -19,21 +19,12 @@ interface EventsPageProps {
   isInstance: boolean;
 }
 
-export default function EventsPage({
-  events,
-  siteName,
-  isInstance,
-}: EventsPageProps) {
+export default function EventsPage({ events, siteName, isInstance }: EventsPageProps) {
   return (
     <>
       <Head>
-        <title>
-          {isInstance ? `Events — ${siteName}` : "All Events — Comunl"}
-        </title>
-        <meta
-          name="description"
-          content={`Browse all events hosted by ${siteName}`}
-        />
+        <title>{isInstance ? `Events — ${siteName}` : "All Events — Comunl"}</title>
+        <meta name="description" content={`Browse all events hosted by ${siteName}`} />
       </Head>
 
       <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
@@ -61,10 +52,7 @@ export default function EventsPage({
             >
               {isInstance ? siteName.toUpperCase() : "COMUNL"}
             </Typography>
-            <Typography
-              variant="h1"
-              sx={{ fontSize: "clamp(36px, 8vw, 56px)", lineHeight: 1 }}
-            >
+            <Typography variant="h1" sx={{ fontSize: "clamp(36px, 8vw, 56px)", lineHeight: 1 }}>
               All Events
             </Typography>
           </Box>

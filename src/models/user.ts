@@ -33,19 +33,11 @@ export const SerializedUserSchema = UserSchema.extend({
 
 export type SerializedUser = z.infer<typeof SerializedUserSchema>;
 
-export function serializeUser(
-  doc: User & { _id: { toString(): string } }
-): SerializedUser {
+export function serializeUser(doc: User & { _id: { toString(): string } }): SerializedUser {
   return {
     ...doc,
     _id: doc._id.toString(),
-    createdAt:
-      doc.createdAt instanceof Date
-        ? doc.createdAt.toISOString()
-        : String(doc.createdAt),
-    updatedAt:
-      doc.updatedAt instanceof Date
-        ? doc.updatedAt.toISOString()
-        : String(doc.updatedAt),
+    createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
+    updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : String(doc.updatedAt),
   };
 }

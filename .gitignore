@@ -1,33 +1,68 @@
-# dependencies
-/node_modules
-/.pnp
+# =====================
+# Dependency directories
+# =====================
+node_modules/
+.pnp/
 .pnp.js
 
-# testing
-/coverage
+# pnpm store (optional, just in case)
+.pnpm-store/
 
-# next.js
-/.next/
-/out/
+# =====================
+# Build output
+# =====================
+.next/
+out/
+build/
 
-# production
-/build
+# =====================
+# Testing & coverage
+# =====================
+coverage/
+.vitest/
+jest-html-reporters-*.html
 
-# misc
-.DS_Store
-*.pem
+# =====================
+# TypeScript
+# =====================
+*.tsbuildinfo
+next-env.d.ts
 
-# debug
+# =====================
+# Environment files
+# =====================
+.env
+.env*.local
+
+# =====================
+# Logs
+# =====================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# =====================
+# OS / Editor junk
+# =====================
+.DS_Store
+Thumbs.db
 
-# vercel
-.vercel
+# =====================
+# Certificates / Keys
+# =====================
+*.pem
+
+# =====================
+# Deployment / CI
+# =====================
+.vercel/
+dist/
+.cache/
+.tmp/
+
+# =====================
+# IDE specific
+# =====================
+.vscode/
+.idea/

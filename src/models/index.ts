@@ -1,5 +1,3 @@
-// src/models/index.ts
-
 // ── Event ──────────────────────────────────────────────────────────────────
 export {
   EventSchema,
@@ -30,12 +28,7 @@ export {
   CreateGuestSchema,
   serializeGuest,
 } from "./guest";
-export type {
-  Guest,
-  AdditionalGuest,
-  SerializedGuest,
-  CreateGuest,
-} from "./guest";
+export type { Guest, AdditionalGuest, SerializedGuest, CreateGuest } from "./guest";
 
 // ── Comment ────────────────────────────────────────────────────────────────
 export {
@@ -47,12 +40,7 @@ export {
 export type { Comment, SerializedComment, CreateComment } from "./comment";
 
 // ── User ───────────────────────────────────────────────────────────────────
-export {
-  UserSchema,
-  UpdateUserSchema,
-  SerializedUserSchema,
-  serializeUser,
-} from "./user";
+export { UserSchema, UpdateUserSchema, SerializedUserSchema, serializeUser } from "./user";
 export type { User, UpdateUser, SerializedUser } from "./user";
 
 // ── Tenant ─────────────────────────────────────────────────────────────────

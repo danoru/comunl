@@ -27,9 +27,7 @@ export default function NotFoundPage() {
           gap: 2,
         }}
       >
-        <Typography sx={{ fontSize: "5rem", lineHeight: 1, mb: 1 }}>
-          🎈
-        </Typography>
+        <Typography sx={{ fontSize: "5rem", lineHeight: 1, mb: 1 }}>🎈</Typography>
 
         <Typography
           variant="h1"
@@ -55,12 +53,8 @@ export default function NotFoundPage() {
           This party doesn't exist.
         </Typography>
 
-        <Typography
-          variant="body2"
-          sx={{ maxWidth: 340, color: tokens.muted, mt: 0.5 }}
-        >
-          The event you're looking for may have been removed, or the link might
-          be wrong.
+        <Typography variant="body2" sx={{ maxWidth: 340, color: tokens.muted, mt: 0.5 }}>
+          The event you're looking for may have been removed, or the link might be wrong.
         </Typography>
 
         <Box

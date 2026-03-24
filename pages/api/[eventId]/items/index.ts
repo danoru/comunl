@@ -2,10 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getEvent, updateEvent } from "../../../../src/lib/db";
 import { getSiteConfig, UpdateEventSchema } from "../../../../src/models";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { eventId } = req.query as { eventId: string };
   const { tenantId } = getSiteConfig();
 

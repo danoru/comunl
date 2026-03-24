@@ -1,149 +1,62 @@
-/**
- * scripts/migrate.ts
- * Run: npx ts-node --skip-project scripts/migrate.ts
- */
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import * as dotenv from "dotenv";
 import * as path from "path";
-import {
-  EventSchema,
-  ItemSchema,
-  TenantSchema,
-  LEGACY_ITEM_TYPE_MAP,
-} from "../src/models";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 const MONGODB_URI = process.env.MONGODB_URI!;
-const SOURCE_DB = "rsvp";
-const TARGET_DB = "comunl";
-const TENANT_ID = "cody";
+if (!MONGODB_URI) throw new Error("MONGODB_URI not set");
 
 async function migrate() {
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   console.log("✓ Connected");
 
-  const source = client.db(SOURCE_DB);
-  const target = client.db(TARGET_DB);
+  const db = client.db("comunl");
+  const items = db.collection("items");
+  const guests = db.collection("guests");
 
-  // 1. Tenant
-  const tenant = TenantSchema.parse({
-    tenantId: TENANT_ID,
-    name: "Cody's Corner",
-    domain: "cody.party",
-    primaryColor: "#F4631E",
-    accentColor: "#FFD166",
-  });
-  await target
-    .collection("tenants")
-    .updateOne({ tenantId: TENANT_ID }, { $set: tenant }, { upsert: true });
-  console.log("✓ Tenant upserted");
+  // Find all guest items
+  const guestItems = await items.find({ itemType: "guest" }).toArray();
+  console.log(`  Found ${guestItems.length} guest items to migrate`);
 
-  // 2. Events — Zod coerces the "2022-10-22 17:00:00" date strings automatically
-  const sourceEvents = await source.collection("events").find().toArray();
-  let eventsOk = 0,
-    eventsFailed = 0;
+  let ok = 0,
+    failed = 0;
 
-  for (const ev of sourceEvents) {
-    // Strip _id before Zod validation — ObjectId isn't a Zod type.
-    // We reattach the original _id when upserting so nothing gets a new _id.
-    const { _id, ...rest } = ev;
-    const result = EventSchema.safeParse({ ...rest, tenantId: TENANT_ID });
+  for (const item of guestItems) {
+    try {
+      const doc = {
+        _id: item._id,
+        tenantId: item.tenantId ?? "cody", // fallback for old docs without tenantId
+        eventId: item.eventId,
+        userId: undefined, // anonymous — no userId
+        displayName: item.item, // "item" field held the name
+        additionalGuests: [],
+        totalCount: 1,
+        createdAt: item._id.getTimestamp(), // approximate from ObjectId
+      };
 
-    if (!result.success) {
-      console.warn(`  ✗ Event ${ev.id} failed:`, result.error.flatten());
-      eventsFailed++;
-      continue;
+      await guests.updateOne({ _id: item._id }, { $set: doc }, { upsert: true });
+      ok++;
+    } catch (e) {
+      console.warn(`  ✗ Failed ${item._id}:`, e);
+      failed++;
     }
-
-    await target
-      .collection("events")
-      .updateOne({ _id }, { $set: { _id, ...result.data } }, { upsert: true });
-    eventsOk++;
   }
-  console.log(`✓ Events: ${eventsOk} migrated, ${eventsFailed} failed`);
 
-  // 3. Attendance → items with itemType: "guest"
-  const sourceAttendance = await source
-    .collection("attendance")
-    .find()
-    .toArray();
-  let attOk = 0,
-    attFailed = 0;
+  console.log(`✓ Guests migrated: ${ok} ok, ${failed} failed`);
 
-  for (const att of sourceAttendance) {
-    // All fields are nested inside itemEntry, not at the top level
-    const entry = att.itemEntry ?? {};
-    const normalisedType =
-      LEGACY_ITEM_TYPE_MAP[entry.itemType] ?? entry.itemType;
-    const result = ItemSchema.safeParse({
-      tenantId: TENANT_ID,
-      eventId: entry.eventId,
-      itemType: normalisedType,
-      item: entry.item,
-    });
+  // Verify
+  const count = await guests.countDocuments();
+  console.log(`  Total guests collection size: ${count}`);
 
-    if (!result.success) {
-      console.warn(`  ✗ Attendance ${att._id} failed:`, result.error.flatten());
-      attFailed++;
-      continue;
-    }
-
-    await target
-      .collection("items")
-      .updateOne(
-        { _id: att._id },
-        { $set: { _id: att._id, ...result.data } },
-        { upsert: true }
-      );
-    attOk++;
-  }
-  console.log(`✓ Attendance: ${attOk} migrated, ${attFailed} failed`);
-
-  // 4. Items (food, host recs)
-  const sourceItems = await source.collection("items").find().toArray();
-  let itemsOk = 0,
-    itemsFailed = 0;
-
-  for (const it of sourceItems) {
-    const entry = it.itemEntry ?? {};
-    const normalisedType =
-      LEGACY_ITEM_TYPE_MAP[entry.itemType ?? it.itemType] ??
-      entry.itemType ??
-      it.itemType;
-    const result = ItemSchema.safeParse({
-      tenantId: TENANT_ID,
-      eventId: entry.eventId ?? it.eventId,
-      itemType: normalisedType,
-      item: entry.item ?? it.item,
-    });
-
-    if (!result.success) {
-      console.warn(`  ✗ Item ${it._id} failed:`, result.error.flatten());
-      itemsFailed++;
-      continue;
-    }
-
-    await target
-      .collection("items")
-      .updateOne(
-        { _id: it._id },
-        { $set: { _id: it._id, ...result.data } },
-        { upsert: true }
-      );
-    itemsOk++;
-  }
-  console.log(`✓ Items: ${itemsOk} migrated, ${itemsFailed} failed`);
-
-  // 5. Summary
-  const [ec, ic] = await Promise.all([
-    target.collection("events").countDocuments({ tenantId: TENANT_ID }),
-    target.collection("items").countDocuments({ tenantId: TENANT_ID }),
-  ]);
-  console.log(`\n── Done ──\n  Events: ${ec}\n  Items:  ${ic}\n`);
+  // Remove migrated guest items from items collection
+  // (comment this out if you want to keep them as a backup)
+  const removed = await items.deleteMany({ itemType: "guest" });
+  console.log(`✓ Removed ${removed.deletedCount} guest entries from items collection`);
 
   await client.close();
+  console.log("✓ Done");
 }
 
 migrate().catch((e) => {

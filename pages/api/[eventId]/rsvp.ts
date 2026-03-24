@@ -1,4 +1,3 @@
-// pages/api/[eventId]/rsvp.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
@@ -15,15 +14,10 @@ import { getSiteConfig, resolveAnonymousGuests } from "../../../src/models";
 
 const CreateRSVPSchema = z.object({
   displayName: z.string().min(1, "Name is required").max(100),
-  additionalGuests: z
-    .array(z.object({ name: z.string().optional() }))
-    .default([]),
+  additionalGuests: z.array(z.object({ name: z.string().optional() })).default([]),
 });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { eventId } = req.query as { eventId: string };
   const { tenantId } = getSiteConfig();
   const session = await getServerSession(req, res, authOptions);
@@ -36,10 +30,7 @@ export default async function handler(
 
   if (req.method === "POST") {
     // Check if anonymous guests are allowed
-    const [event, tenant] = await Promise.all([
-      getEvent(tenantId, eventId),
-      getTenant(tenantId),
-    ]);
+    const [event, tenant] = await Promise.all([getEvent(tenantId, eventId), getTenant(tenantId)]);
 
     if (!event) return res.status(404).json({ message: "Event not found" });
 

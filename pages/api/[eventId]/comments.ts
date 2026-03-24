@@ -17,10 +17,7 @@ const CreateCommentSchema = z.object({
     .optional(),
 });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { eventId } = req.query as { eventId: string };
   const { tenantId } = getSiteConfig();
   const session = await getServerSession(req, res, authOptions);
@@ -53,22 +50,13 @@ export default async function handler(
 
   if (req.method === "DELETE") {
     const { commentId } = req.body as { commentId: string };
-    if (!commentId)
-      return res.status(400).json({ message: "commentId required" });
+    if (!commentId) return res.status(400).json({ message: "commentId required" });
 
     const isAdmin = (session as any)?.isAdmin ?? false;
     // Admins can delete any comment; users can only delete their own
-    const deleted = await deleteComment(
-      tenantId,
-      eventId,
-      commentId,
-      isAdmin ? undefined : userId
-    );
+    const deleted = await deleteComment(tenantId, eventId, commentId, isAdmin ? undefined : userId);
 
-    if (!deleted)
-      return res
-        .status(404)
-        .json({ message: "Comment not found or not yours" });
+    if (!deleted) return res.status(404).json({ message: "Comment not found or not yours" });
     return res.status(200).json({ success: true });
   }
 

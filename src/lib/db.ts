@@ -1,11 +1,4 @@
-import {
-  MongoClient,
-  Collection,
-  Document,
-  Filter,
-  Sort,
-  ObjectId,
-} from "mongodb";
+import { MongoClient, Collection, Document, Filter, Sort, ObjectId } from "mongodb";
 import { z } from "zod";
 import {
   EventSchema,
@@ -63,8 +56,7 @@ function parseOne<T>(schema: z.ZodType<T>, doc: unknown): T {
   return schema.parse(doc);
 }
 
-const withId = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
-  schema.extend({ _id: z.any() });
+const withId = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) => schema.extend({ _id: z.any() });
 
 // ─── Events ───────────────────────────────────────────────────────────────────
 
@@ -81,23 +73,14 @@ export async function getEvents(
   return parseMany(withId(EventSchema), docs).map(serializeEvent as any);
 }
 
-export async function getEvent(
-  tenantId: string,
-  eventId: string
-): Promise<SerializedEvent | null> {
+export async function getEvent(tenantId: string, eventId: string): Promise<SerializedEvent | null> {
   const c = await col("events");
-  const doc = await c.findOne({
-    id: eventId,
-    tenantId,
-    deletedAt: { $exists: false },
-  });
+  const doc = await c.findOne({ id: eventId, tenantId, deletedAt: { $exists: false } });
   if (!doc) return null;
   return serializeEvent(parseOne(withId(EventSchema), doc) as any);
 }
 
-export async function getFeaturedEvents(
-  tenantId: string
-): Promise<SerializedEvent[]> {
+export async function getFeaturedEvents(tenantId: string): Promise<SerializedEvent[]> {
   return getEvents(tenantId, { isFeatured: true });
 }
 
@@ -122,15 +105,9 @@ export async function updateEvent(
   return result.modifiedCount > 0;
 }
 
-export async function deleteEvent(
-  tenantId: string,
-  eventId: string
-): Promise<boolean> {
+export async function deleteEvent(tenantId: string, eventId: string): Promise<boolean> {
   const c = await col("events");
-  const result = await c.updateOne(
-    { id: eventId, tenantId },
-    { $set: { deletedAt: new Date() } }
-  );
+  const result = await c.updateOne({ id: eventId, tenantId }, { $set: { deletedAt: new Date() } });
   return result.modifiedCount > 0;
 }
 
@@ -164,32 +141,19 @@ export async function deleteItem(
   itemId: string
 ): Promise<boolean> {
   const c = await col("items");
-  const result = await c.deleteOne({
-    _id: new ObjectId(itemId),
-    tenantId,
-    eventId,
-  });
+  const result = await c.deleteOne({ _id: new ObjectId(itemId), tenantId, eventId });
   return result.deletedCount > 0;
 }
 
 // ─── Guests ───────────────────────────────────────────────────────────────────
 
-export async function getGuests(
-  tenantId: string,
-  eventId: string
-): Promise<SerializedGuest[]> {
+export async function getGuests(tenantId: string, eventId: string): Promise<SerializedGuest[]> {
   const c = await col("guests");
-  const docs = await c
-    .find({ tenantId, eventId })
-    .sort({ createdAt: 1 })
-    .toArray();
+  const docs = await c.find({ tenantId, eventId }).sort({ createdAt: 1 }).toArray();
   return parseMany(withId(GuestSchema), docs).map(serializeGuest as any);
 }
 
-export async function getGuestCount(
-  tenantId: string,
-  eventId: string
-): Promise<number> {
+export async function getGuestCount(tenantId: string, eventId: string): Promise<number> {
   const c = await col("guests");
   const result = await c
     .aggregate([
@@ -203,7 +167,7 @@ export async function getGuestCount(
 export async function addGuest(
   tenantId: string,
   eventId: string,
-  data: Omit<Guest, "tenantId" | "eventId" | "totalCount">
+  data: Omit<Guest, "tenantId" | "eventId" | "totalCount" | "createdAt">
 ): Promise<SerializedGuest> {
   const c = await col("guests");
   const totalCount = 1 + (data.additionalGuests?.length ?? 0);
@@ -219,11 +183,7 @@ export async function deleteGuest(
   guestId: string
 ): Promise<boolean> {
   const c = await col("guests");
-  const result = await c.deleteOne({
-    _id: new ObjectId(guestId),
-    tenantId,
-    eventId,
-  });
+  const result = await c.deleteOne({ _id: new ObjectId(guestId), tenantId, eventId });
   return result.deletedCount > 0;
 }
 
@@ -241,15 +201,9 @@ export async function getExistingRSVP(
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 
-export async function getComments(
-  tenantId: string,
-  eventId: string
-): Promise<SerializedComment[]> {
+export async function getComments(tenantId: string, eventId: string): Promise<SerializedComment[]> {
   const c = await col("comments");
-  const docs = await c
-    .find({ tenantId, eventId })
-    .sort({ createdAt: 1 })
-    .toArray();
+  const docs = await c.find({ tenantId, eventId }).sort({ createdAt: 1 }).toArray();
   return parseMany(withId(CommentSchema), docs).map(serializeComment as any);
 }
 
@@ -301,15 +255,10 @@ export async function upsertUser(data: User): Promise<SerializedUser> {
 
 export async function updateUser(
   userId: string,
-  data: Partial<
-    Pick<User, "name" | "phone" | "city" | "state" | "dietaryPreferences">
-  >
+  data: Partial<Pick<User, "name" | "phone" | "city" | "state" | "dietaryPreferences">>
 ): Promise<boolean> {
   const c = await col("users");
-  const result = await c.updateOne(
-    { userId },
-    { $set: { ...data, updatedAt: new Date() } }
-  );
+  const result = await c.updateOne({ userId }, { $set: { ...data, updatedAt: new Date() } });
   return result.modifiedCount > 0;
 }
 

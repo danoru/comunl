@@ -20,6 +20,11 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src", "pages", "app"],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".eslint.config.js", "next.config.js"],
+  "exclude": ["node_modules", ".next", "dist", "build"],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

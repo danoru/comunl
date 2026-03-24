@@ -1,4 +1,3 @@
-// src/components/detail/GuestList.tsx
 import React, { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 
@@ -47,10 +46,7 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
 
   if (guests.length === 0) {
     return (
-      <Typography
-        variant="caption"
-        sx={{ fontStyle: "italic", color: tokens.mutedLight }}
-      >
+      <Typography variant="caption" sx={{ fontStyle: "italic", color: tokens.mutedLight }}>
         No one yet — be the first!
       </Typography>
     );
@@ -79,9 +75,7 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
                 py: 0.5,
                 cursor: hasAdditional ? "pointer" : "default",
               }}
-              onClick={() =>
-                hasAdditional && setExpandedGuest(isExpanded ? null : guest._id)
-              }
+              onClick={() => hasAdditional && setExpandedGuest(isExpanded ? null : guest._id)}
             >
               {/* Avatar — from Google if available */}
               {guest.userId ? (
@@ -140,13 +134,9 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
               {namedAdditional.length > 0 && (
                 <IconButton size="small" sx={{ p: 0.25, ml: -0.25 }}>
                   {isExpanded ? (
-                    <ExpandLessRoundedIcon
-                      sx={{ fontSize: 16, color: tokens.muted }}
-                    />
+                    <ExpandLessRoundedIcon sx={{ fontSize: 16, color: tokens.muted }} />
                   ) : (
-                    <ExpandMoreRoundedIcon
-                      sx={{ fontSize: 16, color: tokens.muted }}
-                    />
+                    <ExpandMoreRoundedIcon sx={{ fontSize: 16, color: tokens.muted }} />
                   )}
                 </IconButton>
               )}
@@ -165,11 +155,7 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
                   }}
                 >
                   {namedAdditional.map((g, j) => (
-                    <Typography
-                      key={j}
-                      variant="caption"
-                      sx={{ color: tokens.muted }}
-                    >
+                    <Typography key={j} variant="caption" sx={{ color: tokens.muted }}>
                       + {g.name}
                     </Typography>
                   ))}
@@ -281,10 +267,7 @@ export function RSVPBar({
     }
   }
 
-  const countLabel =
-    totalCount === 1
-      ? "1 person has RSVP'd"
-      : `${totalCount} people have RSVP'd`;
+  const countLabel = totalCount === 1 ? "1 person has RSVP'd" : `${totalCount} people have RSVP'd`;
 
   return (
     <>
@@ -301,14 +284,10 @@ export function RSVPBar({
         }}
       >
         <Box>
-          <Typography
-            sx={{ color: "#fff", fontWeight: 600, fontSize: "1rem", mb: 0.25 }}
-          >
+          <Typography sx={{ color: "#fff", fontWeight: 600, fontSize: "1rem", mb: 0.25 }}>
             Are you coming?
           </Typography>
-          <Typography
-            sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}
-          >
+          <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8125rem" }}>
             {countLabel}
           </Typography>
         </Box>
@@ -375,19 +354,14 @@ export function RSVPBar({
               </Button>
             </Box>
           ) : step === "additional" ? (
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}>
               <Typography sx={{ color: tokens.muted, fontSize: "0.9375rem" }}>
-                Are you bringing anyone else? Add them below, or leave names
-                blank for anonymous guests.
+                Are you bringing anyone else? Add them below, or leave names blank for anonymous
+                guests.
               </Typography>
 
               {additional.map((g, i) => (
-                <Box
-                  key={i}
-                  sx={{ display: "flex", gap: 1, alignItems: "center" }}
-                >
+                <Box key={i} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                   <TextField
                     size="small"
                     placeholder={`Guest ${i + 1} name (optional)`}
@@ -438,9 +412,7 @@ export function RSVPBar({
             </Box>
           ) : (
             // Step 1: identity
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}>
               {/* Signed in — show profile */}
               {isSignedIn ? (
                 <Box
@@ -482,11 +454,7 @@ export function RSVPBar({
                   <Typography sx={{ mb: 2, color: tokens.muted }}>
                     You need to sign in to RSVP for this event.
                   </Typography>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() => signIn("google")}
-                  >
+                  <Button variant="contained" fullWidth onClick={() => signIn("google")}>
                     Sign in with Google
                   </Button>
                 </Box>
@@ -504,10 +472,7 @@ export function RSVPBar({
                     p: "10px 14px",
                   }}
                 >
-                  <Typography
-                    variant="caption"
-                    sx={{ color: tokens.muted, flex: 1 }}
-                  >
+                  <Typography variant="caption" sx={{ color: tokens.muted, flex: 1 }}>
                     Sign in to track your event history and save your info.
                   </Typography>
                   <Button

@@ -54,8 +54,6 @@ export const SerializedItemSchema = ItemSchema.extend({
 
 export type SerializedItem = z.infer<typeof SerializedItemSchema>;
 
-export function serializeItem(
-  doc: Item & { _id: { toString(): string } }
-): SerializedItem {
+export function serializeItem(doc: Item & { _id: { toString(): string } }): SerializedItem {
   return { ...doc, _id: doc._id.toString() };
 }

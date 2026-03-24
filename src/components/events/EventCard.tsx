@@ -28,10 +28,7 @@ export function EventCard({ event }: EventCardProps) {
       : `${daysUntil}d away`;
 
   return (
-    <Link
-      href={`/events/${event.id}`}
-      style={{ textDecoration: "none", display: "block" }}
-    >
+    <Link href={`/events/${event.id}`} style={{ textDecoration: "none", display: "block" }}>
       <Card
         sx={{
           display: "flex",
@@ -104,10 +101,7 @@ export function EventCard({ event }: EventCardProps) {
             </Typography>
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography
-                variant="caption"
-                sx={{ color: tokens.mutedLight, ml: "auto" }}
-              >
+              <Typography variant="caption" sx={{ color: tokens.mutedLight, ml: "auto" }}>
                 View event →
               </Typography>
             </Box>
@@ -137,9 +131,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
       if (filter === "past") return dayjs(e.date).isBefore(dayjs());
       return true;
     })
-    .filter(
-      (e) => !search || e.title.toLowerCase().includes(search.toLowerCase())
-    );
+    .filter((e) => !search || e.title.toLowerCase().includes(search.toLowerCase()));
 
   const upcoming = filtered.filter((e) => !dayjs(e.date).isBefore(dayjs()));
   const past = filtered.filter((e) => dayjs(e.date).isBefore(dayjs()));
@@ -182,9 +174,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
             component="input"
             placeholder="Search events…"
             value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             sx={{
               width: "100%",
               border: `1.5px solid ${tokens.border}`,
@@ -203,9 +193,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
 
       {upcoming.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          {filter === "all" && (
-            <SectionDivider label="UPCOMING" count={upcoming.length} />
-          )}
+          {filter === "all" && <SectionDivider label="UPCOMING" count={upcoming.length} />}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {upcoming.map((event) => (
               <EventCard key={event._id} event={event} />
@@ -216,9 +204,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
 
       {past.length > 0 && (
         <Box>
-          {filter === "all" && (
-            <SectionDivider label="PAST EVENTS" count={past.length} />
-          )}
+          {filter === "all" && <SectionDivider label="PAST EVENTS" count={past.length} />}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {past.map((event) => (
               <EventCard key={event._id} event={event} />
@@ -241,9 +227,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
 
 function SectionDivider({ label, count }: { label: string; count: number }) {
   return (
-    <Box
-      sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2, mt: 3 }}
-    >
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2, mt: 3 }}>
       <Typography
         variant="caption"
         sx={{
@@ -276,8 +260,7 @@ function SectionDivider({ label, count }: { label: string; count: number }) {
 function getEventEmoji(title: string): string {
   const t = title.toLowerCase();
   if (t.includes("halloween") || t.includes("costume")) return "🎃";
-  if (t.includes("bbq") || t.includes("barbecue") || t.includes("grill"))
-    return "🍖";
+  if (t.includes("bbq") || t.includes("barbecue") || t.includes("grill")) return "🍖";
   if (t.includes("new year")) return "🥂";
   if (t.includes("christmas") || t.includes("xmas")) return "🎄";
   if (t.includes("birthday")) return "🎂";

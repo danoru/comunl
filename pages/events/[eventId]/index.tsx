@@ -34,14 +34,7 @@ import type {
 } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
 
-const FOOD_CATEGORIES: ItemType[] = [
-  "main",
-  "side",
-  "snack",
-  "dessert",
-  "drink",
-  "supply",
-];
+const FOOD_CATEGORIES: ItemType[] = ["main", "side", "snack", "dessert", "drink", "supply"];
 const CATEGORY_LABELS: Record<ItemType, string> = {
   main: "Mains",
   side: "Sides",
@@ -96,9 +89,7 @@ export default function EventDetailPage({
 
   const hostRecs = items.filter((i) => i.itemType === "host-rec");
   const [expandedCats, setExpandedCats] = useState<Set<ItemType>>(
-    new Set(
-      FOOD_CATEGORIES.filter((cat) => items.some((i) => i.itemType === cat))
-    )
+    new Set(FOOD_CATEGORIES.filter((cat) => items.some((i) => i.itemType === cat)))
   );
   const visibleCats = FOOD_CATEGORIES.filter(
     (cat) => expandedCats.has(cat) || items.some((i) => i.itemType === cat)
@@ -181,10 +172,7 @@ export default function EventDetailPage({
             ← Events
           </Button>
           {isAdmin && (
-            <Link
-              href={`/events/${event.id}/admin`}
-              style={{ textDecoration: "none" }}
-            >
+            <Link href={`/events/${event.id}/admin`} style={{ textDecoration: "none" }}>
               <Button
                 size="small"
                 sx={{
@@ -218,9 +206,7 @@ export default function EventDetailPage({
           >
             {event.title}
           </Typography>
-          <Typography
-            sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9375rem" }}
-          >
+          <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9375rem" }}>
             {event.location.replace("--", " / ")}
           </Typography>
         </Box>
@@ -259,11 +245,7 @@ export default function EventDetailPage({
             />
           )}
           {isPast && (
-            <InfoCell
-              icon="✅"
-              label="Status"
-              value={`${Math.abs(daysUntil)} days ago`}
-            />
+            <InfoCell icon="✅" label="Status" value={`${Math.abs(daysUntil)} days ago`} />
           )}
           <Box sx={{ ml: "auto", alignSelf: "center" }}>
             <ShareButton title={event.title} />
@@ -338,10 +320,7 @@ export default function EventDetailPage({
                   mt: 0.5,
                 }}
               >
-                <Typography
-                  variant="caption"
-                  sx={{ alignSelf: "center", color: tokens.muted }}
-                >
+                <Typography variant="caption" sx={{ alignSelf: "center", color: tokens.muted }}>
                   Add a category:
                 </Typography>
                 {hiddenCats.map((cat) => (
@@ -349,9 +328,7 @@ export default function EventDetailPage({
                     key={cat}
                     variant="outlined"
                     size="small"
-                    onClick={() =>
-                      setExpandedCats((prev) => new Set([...prev, cat]))
-                    }
+                    onClick={() => setExpandedCats((prev) => new Set([...prev, cat]))}
                     sx={{
                       borderStyle: "dashed",
                       borderRadius: "10px",
@@ -482,21 +459,15 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const eventId = params?.eventId as string;
   const site = getSiteConfig();
 
-  const [
-    event,
-    initialItems,
-    initialGuests,
-    initialComments,
-    guestCount,
-    tenant,
-  ] = await Promise.all([
-    getEvent(site.tenantId, eventId),
-    getItems(site.tenantId, eventId),
-    getGuests(site.tenantId, eventId),
-    getComments(site.tenantId, eventId),
-    getGuestCount(site.tenantId, eventId),
-    getTenant(site.tenantId),
-  ]);
+  const [event, initialItems, initialGuests, initialComments, guestCount, tenant] =
+    await Promise.all([
+      getEvent(site.tenantId, eventId),
+      getItems(site.tenantId, eventId),
+      getGuests(site.tenantId, eventId),
+      getComments(site.tenantId, eventId),
+      getGuestCount(site.tenantId, eventId),
+      getTenant(site.tenantId),
+    ]);
 
   if (!event) return { notFound: true };
 

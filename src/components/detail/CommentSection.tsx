@@ -1,4 +1,3 @@
-// src/components/detail/CommentSection.tsx
 import React, { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import dayjs from "dayjs";
@@ -21,31 +20,21 @@ import { tokens } from "../../styles/theme";
 dayjs.extend(relativeTime);
 
 const IMGUR_RE = /^https?:\/\/(i\.)?imgur\.com\/.+/i;
-const PIP_COLORS = [
-  tokens.orange,
-  tokens.pink,
-  tokens.green,
-  "#6C63FF",
-  tokens.yellow,
-];
+const PIP_COLORS = [tokens.orange, tokens.pink, tokens.green, "#6C63FF", tokens.yellow];
 
 interface CommentSectionProps {
   eventId: string;
   initialComments: SerializedComment[];
 }
 
-export default function CommentSection({
-  eventId,
-  initialComments,
-}: CommentSectionProps) {
+export default function CommentSection({ eventId, initialComments }: CommentSectionProps) {
   const { data: session } = useSession();
   const userId = (session as any)?.userId as string | undefined;
   const isAdmin = (session as any)?.isAdmin ?? false;
   const userName = session?.user?.name ?? "";
   const userImage = session?.user?.image ?? undefined;
 
-  const [comments, setComments] =
-    useState<SerializedComment[]>(initialComments);
+  const [comments, setComments] = useState<SerializedComment[]>(initialComments);
   const [body, setBody] = useState("");
   const [anonName, setAnonName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -158,10 +147,7 @@ export default function CommentSection({
                     <Typography sx={{ fontSize: "0.875rem", fontWeight: 600 }}>
                       {comment.displayName}
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: tokens.mutedLight }}
-                    >
+                    <Typography variant="caption" sx={{ color: tokens.mutedLight }}>
                       {dayjs(comment.createdAt).fromNow()}
                     </Typography>
                     {canDelete && (
@@ -180,9 +166,7 @@ export default function CommentSection({
                     )}
                   </Box>
 
-                  <Typography
-                    sx={{ fontSize: "0.9375rem", lineHeight: 1.6, mt: 0.25 }}
-                  >
+                  <Typography sx={{ fontSize: "0.9375rem", lineHeight: 1.6, mt: 0.25 }}>
                     {comment.body}
                   </Typography>
 
@@ -233,10 +217,7 @@ export default function CommentSection({
         {/* Signed-in identity */}
         {userId && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-            <Avatar
-              src={userImage}
-              sx={{ width: 24, height: 24, fontSize: "0.75rem" }}
-            >
+            <Avatar src={userImage} sx={{ width: 24, height: 24, fontSize: "0.75rem" }}>
               {userName[0]?.toUpperCase()}
             </Avatar>
             <Typography variant="caption" sx={{ fontWeight: 600 }}>
@@ -266,9 +247,7 @@ export default function CommentSection({
             onChange={(e) => setImageUrl(e.target.value)}
             fullWidth
             error={!!imageUrl && !imageValid}
-            helperText={
-              imageUrl && !imageValid ? "Must be an Imgur URL" : undefined
-            }
+            helperText={imageUrl && !imageValid ? "Must be an Imgur URL" : undefined}
             sx={{ mt: 1.5 }}
           />
           {imageUrl && imageValid && (
@@ -288,11 +267,7 @@ export default function CommentSection({
         </Collapse>
 
         {error && (
-          <Typography
-            variant="caption"
-            color="error"
-            sx={{ display: "block", mt: 1 }}
-          >
+          <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
             {error}
           </Typography>
         )}
@@ -318,9 +293,7 @@ export default function CommentSection({
             variant="contained"
             size="small"
             onClick={handleSubmit}
-            disabled={
-              submitting || !body.trim() || (!userId && !anonName.trim())
-            }
+            disabled={submitting || !body.trim() || (!userId && !anonName.trim())}
             sx={{ borderRadius: 100, px: 2.5 }}
           >
             {submitting ? "Posting…" : "Post"}

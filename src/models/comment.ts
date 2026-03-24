@@ -31,10 +31,7 @@ export function serializeComment(
   return {
     ...doc,
     _id: doc._id.toString(),
-    createdAt:
-      doc.createdAt instanceof Date
-        ? doc.createdAt.toISOString()
-        : String(doc.createdAt),
+    createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
   };
 }
 

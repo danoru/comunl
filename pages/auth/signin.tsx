@@ -95,12 +95,8 @@ export default function SignInPage() {
           </Typography>
 
           {isAccessDenied && (
-            <Alert
-              severity="error"
-              sx={{ mb: 2.5, borderRadius: "12px", textAlign: "left" }}
-            >
-              Your email isn't on the admin list. Contact the site owner to get
-              access.
+            <Alert severity="error" sx={{ mb: 2.5, borderRadius: "12px", textAlign: "left" }}>
+              Your email isn't on the admin list. Contact the site owner to get access.
             </Alert>
           )}
 

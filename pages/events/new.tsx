@@ -43,9 +43,7 @@ const IMGUR_RE = /^https?:\/\/(i\.)?imgur\.com\/.+/i;
 export default function NewEventPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof FormState, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
 
@@ -93,9 +91,7 @@ export default function NewEventPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setServerError(
-          data.message ?? "Something went wrong. Please try again."
-        );
+        setServerError(data.message ?? "Something went wrong. Please try again.");
         return;
       }
 
@@ -132,10 +128,7 @@ export default function NewEventPage() {
           >
             NEW EVENT
           </Typography>
-          <Typography
-            variant="h1"
-            sx={{ fontSize: "clamp(36px, 8vw, 52px)", lineHeight: 1 }}
-          >
+          <Typography variant="h1" sx={{ fontSize: "clamp(36px, 8vw, 52px)", lineHeight: 1 }}>
             Create an Event
           </Typography>
         </Box>
@@ -205,8 +198,7 @@ export default function NewEventPage() {
             onChange={(e) => set("flyer", e.target.value)}
             error={!!errors.flyer}
             helperText={
-              errors.flyer ??
-              "Upload your image to imgur.com, then paste the direct link here"
+              errors.flyer ?? "Upload your image to imgur.com, then paste the direct link here"
             }
             fullWidth
             placeholder="https://i.imgur.com/abc123.png"
@@ -242,10 +234,7 @@ export default function NewEventPage() {
             value={form.image}
             onChange={(e) => set("image", e.target.value)}
             error={!!errors.image}
-            helperText={
-              errors.image ??
-              "Leave blank to use the flyer image as the thumbnail too"
-            }
+            helperText={errors.image ?? "Leave blank to use the flyer image as the thumbnail too"}
             fullWidth
             placeholder="https://i.imgur.com/abc123.png"
           />

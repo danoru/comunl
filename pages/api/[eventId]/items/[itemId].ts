@@ -4,15 +4,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { deleteItem } from "../../../../src/lib/db";
 import { getSiteConfig } from "../../../../src/models";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "DELETE") {
     res.setHeader("Allow", ["DELETE"]);
-    return res
-      .status(405)
-      .json({ message: `Method ${req.method} not allowed` });
+    return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
   const { eventId, itemId } = req.query as { eventId: string; itemId: string };
