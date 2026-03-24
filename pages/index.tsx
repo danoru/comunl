@@ -330,8 +330,8 @@ const FEATURES = [
   {
     icon: "🏷️",
     bg: "#FFE8F5",
-    title: "Your Own Domain",
-    desc: "Host on a custom domain like cody.party.",
+    title: "Comments & Pictures",
+    desc: "Share your comments and pictures from the event!",
   },
 ];
 
