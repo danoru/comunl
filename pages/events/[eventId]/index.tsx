@@ -16,6 +16,8 @@ import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
 import ShareButton from "../../../src/components/detail/ShareButton";
 import CommentSection from "../../../src/components/detail/CommentSection";
+import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
+
 import {
   getEvent,
   getItems,
@@ -23,6 +25,7 @@ import {
   getGuestCount,
   getComments,
   getTenant,
+  getPhotos,
 } from "../../../src/lib/db";
 import { getSiteConfig, resolveAnonymousGuests } from "../../../src/models";
 import type {
@@ -59,6 +62,7 @@ interface EventDetailPageProps {
   initialItems: SerializedItem[];
   initialGuests: SerializedGuest[];
   initialComments: SerializedComment[];
+  initialPhotos: SerializedComment[];
   guestCount: number;
   allowAnonymous: boolean;
 }
@@ -68,6 +72,7 @@ export default function EventDetailPage({
   initialItems,
   initialGuests,
   initialComments,
+  initialPhotos,
   guestCount,
   allowAnonymous,
 }: EventDetailPageProps) {
@@ -370,6 +375,13 @@ export default function EventDetailPage({
             </Box>
           </>
         )}
+        <Divider sx={{ my: 4 }} />
+        {initialPhotos.length > 0 && (
+          <>
+            <SectionTitle>📸 Photo Album</SectionTitle>
+            <PhotoAlbum comments={initialPhotos} />
+          </>
+        )}
 
         {/* Comments */}
         <Divider sx={{ my: 4 }} />
@@ -485,13 +497,15 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
   }
 
   // ── Full data fetch for unlocked events ───────────────────────────────────
-  const [initialItems, initialGuests, initialComments, guestCount, tenant] = await Promise.all([
-    getItems(site.tenantId, eventId),
-    getGuests(site.tenantId, eventId),
-    getComments(site.tenantId, eventId),
-    getGuestCount(site.tenantId, eventId),
-    getTenant(site.tenantId),
-  ]);
+  const [initialItems, initialGuests, initialComments, initialPhotos, guestCount, tenant] =
+    await Promise.all([
+      getItems(site.tenantId, eventId),
+      getGuests(site.tenantId, eventId),
+      getComments(site.tenantId, eventId),
+      getPhotos(site.tenantId, eventId),
+      getGuestCount(site.tenantId, eventId),
+      getTenant(site.tenantId),
+    ]);
 
   const tenantDefault = tenant?.allowAnonymousGuests ?? true;
   const allowAnonymous = resolveAnonymousGuests(event, tenantDefault);
@@ -502,6 +516,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
       isLocked: false,
       initialItems,
       initialGuests,
+      initialPhotos,
       initialComments,
       guestCount,
       allowAnonymous,

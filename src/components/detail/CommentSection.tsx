@@ -169,23 +169,6 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
                   <Typography sx={{ fontSize: "0.9375rem", lineHeight: 1.6, mt: 0.25 }}>
                     {comment.body}
                   </Typography>
-
-                  {/* Imgur photo inline */}
-                  {comment.imageUrl && (
-                    <Box
-                      component="img"
-                      src={comment.imageUrl}
-                      alt="Photo"
-                      sx={{
-                        mt: 1,
-                        maxWidth: "100%",
-                        maxHeight: 320,
-                        borderRadius: "10px",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-                  )}
                 </Box>
               </Box>
             );

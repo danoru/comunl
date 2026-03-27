@@ -207,6 +207,15 @@ export async function getComments(tenantId: string, eventId: string): Promise<Se
   return parseMany(withId(CommentSchema), docs).map(serializeComment as any);
 }
 
+export async function getPhotos(tenantId: string, eventId: string): Promise<SerializedComment[]> {
+  const c = await col("comments");
+  const docs = await c
+    .find({ tenantId, eventId, imageUrl: { $exists: true, $ne: null } })
+    .sort({ createdAt: 1 })
+    .toArray();
+  return parseMany(withId(CommentSchema), docs).map(serializeComment as any);
+}
+
 export async function addComment(
   tenantId: string,
   eventId: string,
