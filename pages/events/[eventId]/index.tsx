@@ -12,6 +12,7 @@ import type { GetServerSideProps } from "next";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 
+import EnvelopeOverlay from "../../../src/components/events/EnvelopeOverlay";
 import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
 import ShareButton from "../../../src/components/detail/ShareButton";
@@ -65,6 +66,7 @@ interface EventDetailPageProps {
   initialPhotos: SerializedComment[];
   guestCount: number;
   allowAnonymous: boolean;
+  showInvite: boolean;
 }
 
 export default function EventDetailPage({
@@ -75,9 +77,11 @@ export default function EventDetailPage({
   initialPhotos,
   guestCount,
   allowAnonymous,
+  showInvite,
 }: EventDetailPageProps) {
   const [items, setItems] = useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = useState<SerializedGuest[]>(initialGuests);
+  const [inviteVisible, setInviteVisible] = useState(showInvite);
   const [total, setTotal] = useState(guestCount);
   const { data: session } = useSession();
   const isAdmin = (session as any)?.isAdmin ?? false;
@@ -112,6 +116,11 @@ export default function EventDetailPage({
         <title>{event.title} — Comunl</title>
         <meta name="description" content={event.description || event.title} />
       </Head>
+
+      {/* Envelope invite overlay */}
+      {inviteVisible && (
+        <EnvelopeOverlay eventTitle={event.title} onReveal={() => setInviteVisible(false)} />
+      )}
 
       {/* Hero */}
       <Box
@@ -465,12 +474,13 @@ function InfoCell({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req, query }) => {
   const eventId = params?.eventId as string;
   const site = getSiteConfig();
 
   const event = await getEvent(site.tenantId, eventId);
   if (!event) return { notFound: true };
+  const showInvite = query?.invite === "true";
 
   // ── Private event access check ────────────────────────────────────────────
   if (event.isPrivate && event.inviteCode) {
@@ -520,6 +530,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
       initialComments,
       guestCount,
       allowAnonymous,
+      showInvite: query.invite === "true",
     },
   };
 };

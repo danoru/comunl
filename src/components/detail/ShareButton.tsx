@@ -23,31 +23,30 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
   const [snackbar, setSnackbar] = useState(false);
 
   async function handleShare() {
-    const shareUrl = url ?? window.location.href;
+    const baseUrl = url ?? window.location.href;
 
-    // Use native share sheet if available (mobile browsers)
+    const shareUrl = new URL(baseUrl);
+    shareUrl.searchParams.set("invite", "true");
+
+    const finalUrl = shareUrl.toString();
+
     if (navigator.share) {
       try {
         await navigator.share({
           title,
-          text: text ?? `You're invited to ${title}`,
-          url: shareUrl,
+          url: finalUrl,
         });
-      } catch {
-        // User cancelled — not an error
-      }
+      } catch {}
       return;
     }
 
-    // Fallback: copy to clipboard
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(finalUrl);
       setCopied(true);
       setSnackbar(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Last resort: prompt
-      window.prompt("Copy this link:", shareUrl);
+      window.prompt("Copy this link:", finalUrl);
     }
   }
 
