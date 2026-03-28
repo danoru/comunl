@@ -81,7 +81,7 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
               {/* Avatar — from Google if available */}
               {guest.userId ? (
                 <Avatar
-                  src={undefined} // we'd need to pass image through — see note below
+                  src={undefined}
                   sx={{
                     width: 26,
                     height: 26,

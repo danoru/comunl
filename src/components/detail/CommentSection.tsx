@@ -123,7 +123,7 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
               <Box key={comment._id} sx={{ display: "flex", gap: 1.5 }}>
                 {/* Avatar */}
                 <Avatar
-                  src={comment.userImage}
+                  src={comment.userImage ?? undefined}
                   sx={{
                     width: 36,
                     height: 36,
