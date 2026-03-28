@@ -32,6 +32,7 @@ interface FoodSectionProps {
   eventId: string;
   // The RSVP name entered by an anonymous guest — used for attribution
   guestName?: string;
+  dietaryAlerts?: string[];
   onItemAdded: (item: SerializedItem) => void;
 }
 
@@ -40,6 +41,7 @@ export default function FoodSection({
   items,
   eventId,
   guestName,
+  dietaryAlerts = [],
   onItemAdded,
 }: FoodSectionProps) {
   const { data: session } = useSession();
@@ -102,6 +104,30 @@ export default function FoodSection({
           mb: categoryItems.length > 0 || adding ? 1 : 0,
         }}
       >
+        {dietaryAlerts.length > 0 && category !== "supply" && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 1,
+              background: "rgba(234, 179, 8, 0.08)",
+              border: "1.5px solid rgba(234, 179, 8, 0.3)",
+              borderRadius: "10px",
+              p: "8px 12px",
+              mb: 1,
+            }}
+          >
+            <Typography sx={{ fontSize: "0.8125rem", lineHeight: 1.5, color: tokens.navy }}>
+              <Box component="span" sx={{ mr: 0.5 }}>
+                ⚠️
+              </Box>
+              <Box component="span" sx={{ fontWeight: 600 }}>
+                Dietary heads-up:{" "}
+              </Box>
+              {dietaryAlerts.join(", ")}
+            </Typography>
+          </Box>
+        )}
         <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: tokens.navy }}>
           {meta.icon} {meta.label}
         </Typography>

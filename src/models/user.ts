@@ -1,15 +1,26 @@
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  userId: z.string(), // Google "sub" claim
-  tenantId: z.string(), // which tenant they first signed up through
+  userId: z.string(),
+  tenantId: z.string(),
   email: z.string().email(),
   name: z.string(),
-  image: z.string().optional(), // from Google profile
+  image: z.string().optional(),
   phone: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  dietaryPreferences: z.string().optional(), // free text e.g. "vegetarian, no nuts"
+  dietaryPreferences: z
+    .union([
+      z.array(z.string()),
+      z.string().transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      ),
+    ])
+    .default([])
+    .optional(),
   createdAt: z.coerce.date().default(() => new Date()),
   updatedAt: z.coerce.date().default(() => new Date()),
 });

@@ -271,6 +271,33 @@ export async function updateUser(
   return result.modifiedCount > 0;
 }
 
+export async function getDietaryAlerts(tenantId: string, eventId: string): Promise<string[]> {
+  const guestCol = await col("guests");
+  const guests = await guestCol
+    .find({ tenantId, eventId, userId: { $exists: true, $ne: null } })
+    .toArray();
+
+  const userIds = [...new Set(guests.map((g) => g.userId).filter(Boolean))];
+  if (userIds.length === 0) return [];
+
+  const userCol = await col("users");
+  const users = await userCol.find({ userId: { $in: userIds } }).toArray();
+
+  const all = users.flatMap((u) => {
+    const prefs = u.dietaryPreferences;
+    if (!prefs) return [];
+    if (typeof prefs === "string")
+      return prefs
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+    if (Array.isArray(prefs)) return prefs as string[];
+    return [];
+  });
+
+  return [...new Set(all)].sort();
+}
+
 // ─── Tenants ──────────────────────────────────────────────────────────────────
 
 export async function getTenant(tenantId: string) {

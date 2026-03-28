@@ -20,6 +20,8 @@ import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
 
 import { tokens } from "../../src/styles/theme";
 import type { SerializedUser, SerializedGuest } from "../../src/models";
+import { Chip } from "@mui/material";
+import { DIETARY_OPTIONS } from "@/lib/dietary";
 
 // ─── Profile fields config ────────────────────────────────────────────────────
 
@@ -33,11 +35,6 @@ const FIELDS: {
   { key: "phone", label: "Phone number", placeholder: "Optional — for event updates", type: "tel" },
   { key: "city", label: "City", placeholder: "e.g. Los Angeles" },
   { key: "state", label: "State / Region", placeholder: "e.g. CA" },
-  {
-    key: "dietaryPreferences",
-    label: "Dietary preferences",
-    placeholder: "e.g. vegetarian, no nuts, gluten-free",
-  },
 ];
 
 export default function ProfilePage() {
@@ -49,6 +46,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  const [otherDiet, setOtherDiet] = useState("");
 
   // Fetch profile + RSVP history on mount
   useEffect(() => {
@@ -248,6 +246,136 @@ export default function ProfilePage() {
               </Box>
             </Box>
           ))}
+        </Box>
+        <Box sx={{ mb: editing ? 0 : 4 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}
+          >
+            <SectionLabel>Dietary Preferences</SectionLabel>
+          </Box>
+
+          {editing ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {DIETARY_OPTIONS.map((opt) => {
+                  const selected = (form.dietaryPreferences ?? []).includes(opt);
+                  return (
+                    <Chip
+                      key={opt}
+                      label={opt}
+                      onClick={() =>
+                        setForm((prev) => {
+                          const current = prev.dietaryPreferences ?? [];
+                          return {
+                            ...prev,
+                            dietaryPreferences: selected
+                              ? current.filter((v) => v !== opt)
+                              : [...current, opt],
+                          };
+                        })
+                      }
+                      sx={{
+                        cursor: "pointer",
+                        background: selected ? tokens.orangeGlow : "#fff",
+                        border: `1.5px solid ${selected ? tokens.orange : tokens.border}`,
+                        color: selected ? tokens.orange : tokens.navy,
+                        fontWeight: selected ? 600 : 400,
+                        "&:hover": { borderColor: tokens.orange },
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+
+              {/* Custom / other */}
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  size="small"
+                  placeholder="Other (e.g. no cilantro)"
+                  value={otherDiet}
+                  onChange={(e) => setOtherDiet(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && otherDiet.trim()) {
+                      const val = otherDiet.trim();
+                      setForm((prev) => ({
+                        ...prev,
+                        dietaryPreferences: [...new Set([...(prev.dietaryPreferences ?? []), val])],
+                      }));
+                      setOtherDiet("");
+                    }
+                  }}
+                  sx={{ flex: 1 }}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={!otherDiet.trim()}
+                  onClick={() => {
+                    const val = otherDiet.trim();
+                    if (!val) return;
+                    setForm((prev) => ({
+                      ...prev,
+                      dietaryPreferences: [...new Set([...(prev.dietaryPreferences ?? []), val])],
+                    }));
+                    setOtherDiet("");
+                  }}
+                  sx={{ borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
+                >
+                  Add
+                </Button>
+              </Box>
+
+              {/* Show custom (non-predefined) values as removable chips */}
+              {(form.dietaryPreferences ?? [])
+                .filter((v) => !(DIETARY_OPTIONS as readonly string[]).includes(v))
+                .map((custom) => (
+                  <Chip
+                    key={custom}
+                    label={custom}
+                    onDelete={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        dietaryPreferences: (prev.dietaryPreferences ?? []).filter(
+                          (v) => v !== custom
+                        ),
+                      }))
+                    }
+                    sx={{
+                      alignSelf: "flex-start",
+                      background: tokens.creamDark,
+                      border: `1.5px solid ${tokens.border}`,
+                      fontWeight: 500,
+                    }}
+                  />
+                ))}
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {(profile?.dietaryPreferences ?? []).length === 0 ? (
+                <Typography
+                  variant="caption"
+                  sx={{ color: tokens.mutedLight, fontStyle: "italic" }}
+                >
+                  None set
+                </Typography>
+              ) : (
+                (profile?.dietaryPreferences ?? []).map((pref) => (
+                  <Chip
+                    key={pref}
+                    label={pref}
+                    size="small"
+                    sx={{
+                      background: tokens.orangeGlow,
+                      border: `1.5px solid ${tokens.orange}`,
+                      color: tokens.orange,
+                      fontWeight: 600,
+                      fontSize: "0.8125rem",
+                    }}
+                  />
+                ))
+              )}
+            </Box>
+          )}
         </Box>
 
         {editing && (

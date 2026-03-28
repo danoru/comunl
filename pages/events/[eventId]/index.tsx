@@ -20,6 +20,7 @@ import CommentSection from "../../../src/components/detail/CommentSection";
 import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
 
 import {
+  getDietaryAlerts,
   getEvent,
   getItems,
   getGuests,
@@ -67,6 +68,7 @@ interface EventDetailPageProps {
   guestCount: number;
   allowAnonymous: boolean;
   showInvite: boolean;
+  dietaryAlerts: string[];
 }
 
 export default function EventDetailPage({
@@ -78,6 +80,7 @@ export default function EventDetailPage({
   guestCount,
   allowAnonymous,
   showInvite,
+  dietaryAlerts,
 }: EventDetailPageProps) {
   const [items, setItems] = useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = useState<SerializedGuest[]>(initialGuests);
@@ -317,6 +320,7 @@ export default function EventDetailPage({
                     category={cat}
                     items={items}
                     eventId={event.id}
+                    dietaryAlerts={dietaryAlerts}
                     onItemAdded={(item) => setItems((prev) => [...prev, item])}
                   />
                 </Grid>
@@ -507,15 +511,23 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
   }
 
   // ── Full data fetch for unlocked events ───────────────────────────────────
-  const [initialItems, initialGuests, initialComments, initialPhotos, guestCount, tenant] =
-    await Promise.all([
-      getItems(site.tenantId, eventId),
-      getGuests(site.tenantId, eventId),
-      getComments(site.tenantId, eventId),
-      getPhotos(site.tenantId, eventId),
-      getGuestCount(site.tenantId, eventId),
-      getTenant(site.tenantId),
-    ]);
+  const [
+    initialItems,
+    initialGuests,
+    initialComments,
+    initialPhotos,
+    guestCount,
+    tenant,
+    dietaryActions,
+  ] = await Promise.all([
+    getItems(site.tenantId, eventId),
+    getGuests(site.tenantId, eventId),
+    getComments(site.tenantId, eventId),
+    getPhotos(site.tenantId, eventId),
+    getGuestCount(site.tenantId, eventId),
+    getTenant(site.tenantId),
+    event.isGuestOnly ? Promise.resolve([]) : getDietaryAlerts(site.tenantId, eventId),
+  ]);
 
   const tenantDefault = tenant?.allowAnonymousGuests ?? true;
   const allowAnonymous = resolveAnonymousGuests(event, tenantDefault);
@@ -531,6 +543,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
       guestCount,
       allowAnonymous,
       showInvite: query.invite === "true",
+      dietaryActions,
     },
   };
 };
