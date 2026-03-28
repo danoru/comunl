@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useSession, signOut, signIn } from "next-auth/react";
+
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -10,19 +12,23 @@ import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
+
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+
 import type { SiteConfig } from "../../models";
 import { tokens } from "../../styles/theme";
 
 export default function Navbar({ siteConfig }: { siteConfig: SiteConfig }) {
+  const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = (session as any)?.isAdmin ?? false;
+  const canCreateEvents = isAdmin || siteConfig.allowPublicEventCreation;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   return (
     <AppBar position="sticky">
       <Toolbar sx={{ justifyContent: "space-between", px: { xs: 2, sm: 3 } }}>
-        {/* Logo */}
         <Link href="/" style={{ textDecoration: "none" }}>
           <Typography
             variant="h2"
@@ -37,44 +43,30 @@ export default function Navbar({ siteConfig }: { siteConfig: SiteConfig }) {
           </Typography>
         </Link>
 
-        {/* Desktop nav */}
-        <Box
-          sx={{
-            display: { xs: "none", sm: "flex" },
-            gap: 1.5,
-            alignItems: "center",
-          }}
-        >
+        <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1.5, alignItems: "center" }}>
           <Link href="/events" style={{ textDecoration: "none" }}>
-            <Button
-              sx={{
-                color: "rgba(255,255,255,0.75)",
-                "&:hover": { color: "#fff" },
-              }}
-            >
+            <Button sx={{ color: "rgba(255,255,255,0.75)", "&:hover": { color: "#fff" } }}>
               Events
             </Button>
           </Link>
 
-          {isAdmin && (
-            <Link href="/events/new" style={{ textDecoration: "none" }}>
-              <Button variant="contained" size="small">
-                + New Event
-              </Button>
-            </Link>
-          )}
-
-          {/* Auth button */}
-          {isAdmin ? (
+          {session ? (
             <>
+              {canCreateEvents && (
+                <Link href="/events/new" style={{ textDecoration: "none" }}>
+                  <Button variant="contained" size="small">
+                    + New Event
+                  </Button>
+                </Link>
+              )}
               <Avatar
-                src={session?.user?.image ?? undefined}
-                alt={session?.user?.name ?? "Admin"}
+                src={session.user?.image ?? undefined}
+                alt={session.user?.name ?? "Me"}
                 sx={{
                   width: 32,
                   height: 32,
                   cursor: "pointer",
-                  border: `2px solid ${tokens.orange}`,
+                  border: `2px solid ${isAdmin ? tokens.orange : "rgba(255,255,255,0.3)"}`,
                 }}
                 onClick={(e) => setAnchorEl(e.currentTarget)}
               />
@@ -85,7 +77,18 @@ export default function Navbar({ siteConfig }: { siteConfig: SiteConfig }) {
                 PaperProps={{ sx: { borderRadius: "12px", mt: 1 } }}
               >
                 <MenuItem disabled sx={{ fontSize: "0.8125rem", opacity: 0.6 }}>
-                  {session?.user?.email}
+                  {session.user?.email}
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    router.push("/profile");
+                  }}
+                >
+                  <ListItemIcon>
+                    <PersonRoundedIcon fontSize="small" />
+                  </ListItemIcon>
+                  Profile
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -101,18 +104,18 @@ export default function Navbar({ siteConfig }: { siteConfig: SiteConfig }) {
               </Menu>
             </>
           ) : (
-            <Link href="/auth/signin" style={{ textDecoration: "none" }}>
-              <Button
-                size="small"
-                sx={{
-                  color: "rgba(255,255,255,0.5)",
-                  fontSize: "0.8125rem",
-                  "&:hover": { color: "rgba(255,255,255,0.8)" },
-                }}
-              >
-                Admin
-              </Button>
-            </Link>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => signIn("google")}
+              sx={{
+                color: "rgba(255,255,255,0.85)",
+                borderColor: "rgba(255,255,255,0.3)",
+                "&:hover": { borderColor: "#fff", color: "#fff" },
+              }}
+            >
+              Sign In
+            </Button>
           )}
         </Box>
       </Toolbar>

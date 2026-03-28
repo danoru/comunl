@@ -93,7 +93,7 @@ export default function Layout({ siteConfig, children }: LayoutProps) {
         </Typography>
       </Box>
 
-      <MobileBottomNav />
+      <MobileBottomNav siteConfig={siteConfig} />
     </Box>
   );
 }
