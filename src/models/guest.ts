@@ -7,7 +7,7 @@ export const AdditionalGuestSchema = z.object({
 export const GuestSchema = z.object({
   tenantId: z.string(),
   eventId: z.string(),
-  userId: z.string().optional(),
+  userId: z.string().nullable().optional(),
   displayName: z.string().min(1, "Name is required"),
   additionalGuests: z.array(AdditionalGuestSchema).default([]),
   totalCount: z.number().int().min(1).default(1),

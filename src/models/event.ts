@@ -14,6 +14,7 @@ export const EventSchema = z.object({
   allowAnonymousGuests: z.boolean().nullable().default(null),
   isPrivate: z.boolean().default(false),
   inviteCode: z.string().nullable().default(null),
+  hosts: z.array(z.string()).default([]),
 });
 
 export const CreateEventSchema = EventSchema.omit({ id: true, tenantId: true }).extend({

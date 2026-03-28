@@ -23,7 +23,7 @@ import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import dayjs, { Dayjs } from "dayjs";
 
-import { adminGuard } from "../../../src/lib/auth";
+import { adminGuard, getSession } from "../../../src/lib/auth";
 import { getEvent, getGuests, getItems } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 import type { SerializedEvent, SerializedGuest, SerializedItem } from "../../../src/models";
@@ -53,6 +53,8 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
   const [saveSuccess, setSaveSuccess] = React.useState(false);
 
   // ── Host recs state ──────────────────────────────────────────────────────
+  const [hosts, setHosts] = React.useState<string[]>(event.hosts ?? []);
+  const [newHost, setNewHost] = React.useState("");
   const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = React.useState<SerializedGuest[]>(initialGuests);
   const [newRec, setNewRec] = React.useState("");
@@ -85,6 +87,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           image: image.trim() || flyer.trim(),
           isFeatured,
           isGuestOnly,
+          hosts,
         }),
       });
 
@@ -359,6 +362,55 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         </Button>
 
         <Divider sx={{ my: 3 }} />
+        <SectionLabel>Co-Hosts</SectionLabel>
+        <Typography variant="caption" sx={{ color: tokens.muted, display: "block", mb: 1.5 }}>
+          Add user IDs or emails of people who can access the admin panel for this event.
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+          {hosts.length === 0 && (
+            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
+              No co-hosts — you're the only admin.
+            </Typography>
+          )}
+          {hosts.map((h) => (
+            <Chip
+              key={h}
+              label={h}
+              onDelete={() => setHosts((prev) => prev.filter((x) => x !== h))}
+              sx={{ background: "#fff", border: `1.5px solid ${tokens.border}`, fontWeight: 500 }}
+            />
+          ))}
+        </Box>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <TextField
+            size="small"
+            placeholder="User ID or email"
+            value={newHost}
+            onChange={(e) => setNewHost(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newHost.trim()) {
+                setHosts((prev) => [...new Set([...prev, newHost.trim()])]);
+                setNewHost("");
+              }
+            }}
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            size="small"
+            disabled={!newHost.trim()}
+            onClick={() => {
+              setHosts((prev) => [...new Set([...prev, newHost.trim()])]);
+              setNewHost("");
+            }}
+            startIcon={<AddRoundedIcon />}
+            sx={{ borderRadius: 100, px: 2 }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
 
         {/* ── Host recommendations ── */}
         <SectionLabel>Host Recommendations</SectionLabel>
@@ -415,20 +467,18 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
               No guests yet
             </Typography>
           )}
-          {guests
-            .filter((g) => g._id === "guest")
-            .map((guest) => (
-              <Chip
-                key={guest._id}
-                label={guest.displayName}
-                onDelete={() => handleRemoveItem(guest._id)}
-                sx={{
-                  background: "#fff",
-                  border: `1.5px solid ${tokens.border}`,
-                  fontWeight: 500,
-                }}
-              />
-            ))}
+          {guests.map((guest) => (
+            <Chip
+              key={guest._id}
+              label={guest.displayName}
+              onDelete={() => handleRemoveItem(guest._id)}
+              sx={{
+                background: "#fff",
+                border: `1.5px solid ${tokens.border}`,
+                fontWeight: 500,
+              }}
+            />
+          ))}
         </Box>
 
         {/* ── Food items ── */}
@@ -554,22 +604,26 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Auth-protected data fetching ─────────────────────────────────────────────
-
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const guard = await adminGuard(context);
-  if (guard) return guard;
-
   const eventId = context.params?.eventId as string;
   const site = getSiteConfig();
 
-  const [event, initialGuests, initialItems] = await Promise.all([
-    getEvent(site.tenantId, eventId),
+  const event = await getEvent(site.tenantId, eventId);
+  if (!event) return { notFound: true };
+
+  const guard = await adminGuard(context);
+
+  if (guard !== null) {
+    const session = await getSession(context);
+    const userId = (session as any)?.userId as string | undefined;
+    const isHost = userId && (event.hosts ?? []).includes(userId);
+    if (!isHost) return guard;
+  }
+
+  const [initialGuests, initialItems] = await Promise.all([
     getGuests(site.tenantId, eventId),
     getItems(site.tenantId, eventId),
   ]);
-
-  if (!event) return { notFound: true };
 
   return { props: { event, initialGuests, initialItems } };
 };

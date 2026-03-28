@@ -5,14 +5,15 @@ const IMGUR_RE = /^https?:\/\/(i\.)?imgur\.com\/.+/i;
 export const CommentSchema = z.object({
   tenantId: z.string(),
   eventId: z.string(),
-  userId: z.string().optional(),
-  displayName: z.string().min(1),
-  userImage: z.string().optional(),
-  body: z.string().min(1, "Comment can't be empty").max(1000),
+  userId: z.string().nullable().optional(),
+  userImage: z.string().nullable().optional(),
   imageUrl: z
     .string()
     .refine((v) => !v || IMGUR_RE.test(v), "Must be an Imgur URL")
+    .nullable()
     .optional(),
+  displayName: z.string().min(1),
+  body: z.string().min(1, "Comment can't be empty").max(1000),
   createdAt: z.coerce.date().default(() => new Date()),
 });
 

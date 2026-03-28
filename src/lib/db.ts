@@ -46,12 +46,12 @@ function parseMany<T>(schema: z.ZodType<T>, docs: unknown[]): T[] {
     const result = schema.safeParse(doc);
     if (!result.success) {
       console.warn("[db] Validation failed:", result.error.flatten());
+      console.warn("[db] Raw doc:", JSON.stringify(doc, null, 2)); // ← add this
       return [];
     }
     return [result.data];
   });
 }
-
 function parseOne<T>(schema: z.ZodType<T>, doc: unknown): T {
   return schema.parse(doc);
 }

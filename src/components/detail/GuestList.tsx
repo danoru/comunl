@@ -55,8 +55,9 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
   return (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
       {guests.map((guest, i) => {
-        const hasAdditional = guest.additionalGuests.length > 0;
-        const namedAdditional = guest.additionalGuests.filter((g) => g.name);
+        const additionalGuests = guest.additionalGuests ?? [];
+        const hasAdditional = additionalGuests.length > 0;
+        const namedAdditional = additionalGuests.filter((g) => g.name);
         const isExpanded = expandedGuest === guest._id;
 
         return (
@@ -117,7 +118,7 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
               {/* +N badge if bringing additional guests */}
               {hasAdditional && (
                 <Chip
-                  label={`+${guest.additionalGuests.length}`}
+                  label={`+${additionalGuests.length}`}
                   size="small"
                   sx={{
                     height: 20,
