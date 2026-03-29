@@ -201,6 +201,26 @@ export function RSVPBar({
   const [additional, setAdditional] = useState<{ name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const onResize = () => {
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+      const keyboardH = window.innerHeight - viewport.height - viewport.offsetTop;
+      setKeyboardHeight(Math.max(0, keyboardH));
+    };
+
+    window.visualViewport?.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("scroll", onResize);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("scroll", onResize);
+      setKeyboardHeight(0);
+    };
+  }, [open]);
 
   function handleOpen() {
     setStep("rsvp");
@@ -311,10 +331,13 @@ export function RSVPBar({
             borderRadius: "24px 24px 0 0",
             m: 0,
             position: "fixed",
-            bottom: 0,
+            bottom: keyboardHeight,
             left: 0,
             right: 0,
             maxWidth: "100%",
+            maxHeight: "90svh",
+            overflowY: "auto",
+            transition: "bottom 0.15s ease",
           },
         }}
       >
@@ -341,7 +364,7 @@ export function RSVPBar({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 2 }}>
+        <DialogContent sx={{ pt: 2, pb: "env(safe-area-inset-bottom, 16px" }}>
           {step === "done" ? (
             <Box sx={{ textAlign: "center", py: 3 }}>
               <Typography sx={{ fontSize: "3rem", mb: 1.5 }}>🎉</Typography>
