@@ -22,12 +22,28 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import dayjs, { Dayjs } from "dayjs";
-
+import { useSession } from "next-auth/react";
+import InputAdornment from "@mui/material/InputAdornment";
+import Avatar from "@mui/material/Avatar";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemButton from "@mui/material/ListItemButton";
+import Paper from "@mui/material/Paper";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { adminGuard, getSession } from "../../../src/lib/auth";
 import { getEvent, getGuests, getItems } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 import type { SerializedEvent, SerializedGuest, SerializedItem } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
+
+interface HostUser {
+  userId: string;
+  name: string;
+  email: string;
+  image: string | null;
+}
 
 interface AdminPageProps {
   event: SerializedEvent;
@@ -47,13 +63,21 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
   const [image, setImage] = React.useState(event.image ?? "");
   const [isFeatured, setIsFeatured] = React.useState(event.isFeatured);
   const [isGuestOnly, setIsGuestOnly] = React.useState(event.isGuestOnly);
+  const { data: session } = useSession();
+  const currentUserId = (session as any)?.userId as string | undefined;
+  const isAdmin = (session as any)?.isAdmin ?? false;
+  const canManageHosts = isAdmin || event.createdBy === currentUserId;
+
+  const [hostSearch, setHostSearch] = React.useState("");
+  const [hostResults, setHostResults] = React.useState<HostUser[]>([]);
+  const [searchingHosts, setSearchingHosts] = React.useState(false);
 
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState("");
   const [saveSuccess, setSaveSuccess] = React.useState(false);
 
   // ── Host recs state ──────────────────────────────────────────────────────
-  const [hosts, setHosts] = React.useState<string[]>(event.hosts ?? []);
+  const [hosts, setHosts] = React.useState<HostUser[]>([]);
   const [newHost, setNewHost] = React.useState("");
   const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = React.useState<SerializedGuest[]>(initialGuests);
@@ -106,6 +130,27 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
     }
   }
 
+  React.useEffect(() => {
+    if (hostSearch.length < 2) {
+      setHostResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchingHosts(true);
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(hostSearch)}`);
+        const data = await res.json();
+        // Filter out users already added as hosts
+        setHostResults(data.filter((u: HostUser) => !hosts.some((h) => h.userId === u.userId)));
+      } catch {
+        setHostResults([]);
+      } finally {
+        setSearchingHosts(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [hostSearch, hosts]);
+
   // ── Add host rec ──────────────────────────────────────────────────────────
   async function handleAddRec() {
     const trimmed = newRec.trim();
@@ -151,6 +196,16 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
       setDeleteOpen(false);
     }
   }
+
+  React.useEffect(() => {
+    if (!event.hosts?.length) return;
+    fetch(`/api/users/search?ids=${event.hosts.join(",")}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setHosts(data);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <>
@@ -363,52 +418,111 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Divider sx={{ my: 3 }} />
         <SectionLabel>Co-Hosts</SectionLabel>
-        <Typography variant="caption" sx={{ color: tokens.muted, display: "block", mb: 1.5 }}>
-          Add user IDs or emails of people who can access the admin panel for this event.
-        </Typography>
+
+        {/* Current hosts */}
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
           {hosts.length === 0 && (
             <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
-              No co-hosts — you're the only admin.
+              No co-hosts yet
             </Typography>
           )}
-          {hosts.map((h) => (
+          {hosts.map((host) => (
             <Chip
-              key={h}
-              label={h}
-              onDelete={() => setHosts((prev) => prev.filter((x) => x !== h))}
-              sx={{ background: "#fff", border: `1.5px solid ${tokens.border}`, fontWeight: 500 }}
+              key={host.userId}
+              avatar={
+                <Avatar src={host.image ?? undefined} sx={{ width: 24, height: 24 }}>
+                  {host.name[0]?.toUpperCase()}
+                </Avatar>
+              }
+              label={
+                <Box>
+                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 600, lineHeight: 1.2 }}>
+                    {host.name}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.6875rem", color: tokens.muted, lineHeight: 1.2 }}>
+                    {host.email}
+                  </Typography>
+                </Box>
+              }
+              onDelete={
+                canManageHosts
+                  ? () => setHosts((prev) => prev.filter((h) => h.userId !== host.userId))
+                  : undefined
+              }
+              sx={{
+                height: "auto",
+                py: 0.75,
+                background: "#fff",
+                border: `1.5px solid ${tokens.border}`,
+                "& .MuiChip-label": { px: 1 },
+              }}
             />
           ))}
         </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <TextField
-            size="small"
-            placeholder="User ID or email"
-            value={newHost}
-            onChange={(e) => setNewHost(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && newHost.trim()) {
-                setHosts((prev) => [...new Set([...prev, newHost.trim()])]);
-                setNewHost("");
-              }
-            }}
-            sx={{ flex: 1 }}
-          />
-          <Button
-            variant="contained"
-            size="small"
-            disabled={!newHost.trim()}
-            onClick={() => {
-              setHosts((prev) => [...new Set([...prev, newHost.trim()])]);
-              setNewHost("");
-            }}
-            startIcon={<AddRoundedIcon />}
-            sx={{ borderRadius: 100, px: 2 }}
-          >
-            Add
-          </Button>
-        </Box>
+
+        {/* Search to add */}
+        {canManageHosts && (
+          <Box sx={{ position: "relative" }}>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="Search by name or email…"
+              value={hostSearch}
+              onChange={(e) => setHostSearch(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon sx={{ fontSize: 18, color: tokens.muted }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {hostResults.length > 0 && (
+              <Paper
+                elevation={4}
+                sx={{
+                  position: "absolute",
+                  top: "calc(100% + 4px)",
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                }}
+              >
+                <List dense disablePadding>
+                  {hostResults.map((user) => (
+                    <ListItem key={user.userId} disablePadding>
+                      <ListItemButton
+                        onClick={() => {
+                          setHosts((prev) => [...prev, user]);
+                          setHostSearch("");
+                          setHostResults([]);
+                        }}
+                        sx={{ gap: 1.5 }}
+                      >
+                        <ListItemAvatar sx={{ minWidth: 36 }}>
+                          <Avatar
+                            src={user.image ?? undefined}
+                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
+                          >
+                            {user.name[0]?.toUpperCase()}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={user.name}
+                          secondary={user.email}
+                          primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 600 }}
+                          secondaryTypographyProps={{ fontSize: "0.75rem" }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
+          </Box>
+        )}
 
         <Divider sx={{ my: 3 }} />
 

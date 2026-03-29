@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
 import { getEvents, createEvent } from "../../../src/lib/db";
 import { getSiteConfig, CreateEventSchema } from "../../../src/models";
 import { generateEventId, generateInviteCode } from "../../../src/lib/nanoid";
@@ -12,6 +14,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
+    const session = await getServerSession(req, res, authOptions);
+    const isAdmin = (session as any)?.isAdmin ?? false;
+    const userId = (session as any)?.userId as string | undefined;
+    const site = getSiteConfig();
+
+    if (!session) {
+      return res.status(401).json({ message: "Not signed in" });
+    }
+
+    if (!site.allowPublicEventCreation && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to create events" });
+    }
+
     const result = CreateEventSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({
@@ -20,10 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Generate a short random ID — e.g. "xK7mP2"
     const id = generateEventId();
-
-    // If the event is private and no invite code was provided, generate one
     const inviteCode = result.data.isPrivate
       ? result.data.inviteCode || generateInviteCode()
       : null;
@@ -32,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...result.data,
       id,
       inviteCode,
+      createdBy: userId,
     });
 
     return res.status(201).json(event);

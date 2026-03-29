@@ -53,8 +53,8 @@ export default function ProfilePage() {
     if (status !== "authenticated") return;
 
     Promise.all([
-      fetch("/api/user/profile").then((r) => r.json()),
-      fetch("/api/user/rsvps").then((r) => r.json()),
+      fetch("/api/users/profile").then((r) => r.json()),
+      fetch("/api/users/rsvps").then((r) => r.json()),
     ])
       .then(([profileData, rsvpData]) => {
         setProfile(profileData);
@@ -68,7 +68,7 @@ export default function ProfilePage() {
     setSaving(true);
     setSaveMsg("");
     try {
-      const res = await fetch("/api/user/profile", {
+      const res = await fetch("/api/users/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
+import { useSession } from "next-auth/react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -13,6 +14,9 @@ import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs, { Dayjs } from "dayjs";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../api/auth/[...nextauth]";
+import { getSiteConfig } from "../../src/models";
 
 import { tokens } from "../../src/styles/theme";
 
@@ -46,6 +50,8 @@ export default function NewEventPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  const { data: session } = useSession();
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -86,6 +92,7 @@ export default function NewEventPage() {
           image: form.image.trim() || form.flyer.trim() || "",
           isFeatured: form.isFeatured,
           isGuestOnly: form.isGuestOnly,
+          createdBy: (session as any)?.userId,
         }),
       });
 
@@ -360,8 +367,22 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // ─── Auth guard ───────────────────────────────────────────────────────────────
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { adminGuard } = await import("../../src/lib/auth");
-  const redirect = await adminGuard(context);
-  if (redirect) return redirect;
+  const session = await getServerSession(context.req, context.res, authOptions);
+  const isAdmin = (session as any)?.isAdmin ?? false;
+  const site = getSiteConfig();
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: `/auth/signin?callbackUrl=${encodeURIComponent(context.resolvedUrl)}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (!site.allowPublicEventCreation && !isAdmin) {
+    return { redirect: { destination: "/events", permanent: false } };
+  }
+
   return { props: {} };
 };

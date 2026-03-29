@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const EventSchema = z.object({
+  createdBy: z.string().optional(),
   tenantId: z.string(),
   id: z.string(),
   title: z.string().min(1, "Title is required"),

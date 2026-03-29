@@ -9,6 +9,13 @@ export const UserSchema = z.object({
   phone: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  notificationPreferences: z
+    .object({
+      email: z.boolean().default(false),
+      sms: z.boolean().default(false),
+      phone: z.string().optional(),
+    })
+    .default({ email: false, sms: false }),
   dietaryPreferences: z
     .union([
       z.array(z.string()),
