@@ -252,16 +252,15 @@ export async function getUser(userId: string): Promise<SerializedUser | null> {
 
 export async function upsertUser(data: User): Promise<SerializedUser> {
   const c = await col("users");
-  const doc = UserSchema.parse({ ...data, updatedAt: new Date() });
+  const { createdAt, ...rest } = UserSchema.parse({ ...data, updatedAt: new Date() });
   await c.updateOne(
     { userId: data.userId },
-    { $set: doc, $setOnInsert: { createdAt: new Date() } },
+    { $set: rest, $setOnInsert: { createdAt: createdAt ?? new Date() } },
     { upsert: true }
   );
   const updated = await c.findOne({ userId: data.userId });
   return serializeUser(parseOne(withId(UserSchema), updated) as any);
 }
-
 export async function updateUser(
   userId: string,
   data: Partial<Pick<User, "name" | "phone" | "city" | "state" | "dietaryPreferences">>
