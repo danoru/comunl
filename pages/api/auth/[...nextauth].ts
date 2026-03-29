@@ -29,7 +29,8 @@ export const authOptions: NextAuthOptions = {
           tenantId,
           email: user.email,
           name: user.name ?? user.email.split("@")[0],
-          image: user.image ?? undefined,
+          image: user.image || undefined,
+          notificationPreferences: { email: false, sms: false },
           createdAt: new Date(),
           updatedAt: new Date(),
         });
