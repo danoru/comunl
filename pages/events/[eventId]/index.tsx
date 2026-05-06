@@ -142,7 +142,7 @@ export default function EventDetailPage(props: EventDetailPageProps) {
       </Head>
       <OpenGraph
         description={event.description || `${event.title} · ${event.location}`}
-        image={event.flyer || `/api/og/${event.id}`}
+        image={`/api/og/${event.id}`}
         title={event.title}
         type="article"
         url={`/events/${event.id}`}
