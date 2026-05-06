@@ -18,6 +18,7 @@ import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
 import ShareButton from "../../../src/components/detail/ShareButton";
 import CommentSection from "../../../src/components/detail/CommentSection";
 import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
+import EventLocked from "../../../src/components/detail/EventLocked";
 
 import {
   getDietaryAlerts,
@@ -59,29 +60,47 @@ const CATEGORY_ICONS: Record<ItemType, string> = {
   "host-rec": "⭐",
 };
 
-interface EventDetailPageProps {
-  event: SerializedEvent;
-  initialItems: SerializedItem[];
-  initialGuests: SerializedGuest[];
-  initialComments: SerializedComment[];
-  initialPhotos: SerializedComment[];
-  guestCount: number;
-  allowAnonymous: boolean;
-  showInvite: boolean;
-  dietaryAlerts: string[];
-}
+type EventDetailPageProps =
+  | {
+      isLocked: true;
+      event: { id: string; title: string };
+    }
+  | {
+      isLocked: false;
+      event: SerializedEvent;
+      initialItems: SerializedItem[];
+      initialGuests: SerializedGuest[];
+      initialComments: SerializedComment[];
+      initialPhotos: SerializedComment[];
+      guestCount: number;
+      allowAnonymous: boolean;
+      showInvite: boolean;
+      dietaryAlerts: string[];
+    };
 
-export default function EventDetailPage({
-  event,
-  initialItems,
-  initialGuests,
-  initialComments,
-  initialPhotos,
-  guestCount,
-  allowAnonymous,
-  showInvite,
-  dietaryAlerts,
-}: EventDetailPageProps) {
+export default function EventDetailPage(props: EventDetailPageProps) {
+  if (props.isLocked) {
+    return (
+      <>
+        <Head>
+          <title>{props.event.title} — Comunl</title>
+        </Head>
+        <EventLocked eventId={props.event.id} eventTitle={props.event.title} />
+      </>
+    );
+  }
+
+  const {
+    event,
+    initialItems,
+    initialGuests,
+    initialComments,
+    initialPhotos,
+    guestCount,
+    allowAnonymous,
+    showInvite,
+    dietaryAlerts,
+  } = props;
   const [items, setItems] = useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = useState<SerializedGuest[]>(initialGuests);
   const [inviteVisible, setInviteVisible] = useState(showInvite);
@@ -120,12 +139,10 @@ export default function EventDetailPage({
         <meta name="description" content={event.description || event.title} />
       </Head>
 
-      {/* Envelope invite overlay */}
       {inviteVisible && (
         <EnvelopeOverlay eventTitle={event.title} onReveal={() => setInviteVisible(false)} />
       )}
 
-      {/* Hero */}
       <Box
         sx={{
           height: { xs: 300, sm: 380 },
@@ -227,9 +244,7 @@ export default function EventDetailPage({
         </Box>
       </Box>
 
-      {/* Body */}
       <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, pb: 8 }}>
-        {/* Info bar */}
         <Box
           sx={{
             background: "#fff",
@@ -267,7 +282,6 @@ export default function EventDetailPage({
           </Box>
         </Box>
 
-        {/* Description */}
         {event.description && (
           <Box
             sx={{
@@ -291,7 +305,6 @@ export default function EventDetailPage({
           </Box>
         )}
 
-        {/* RSVP */}
         {!isPast && (
           <RSVPBar
             eventId={event.id}
@@ -303,13 +316,11 @@ export default function EventDetailPage({
           />
         )}
 
-        {/* Guest list */}
         <SectionTitle>
           Guest List ({total} {total === 1 ? "person" : "people"})
         </SectionTitle>
         <GuestList guests={guests} totalCount={total} />
 
-        {/* Food */}
         {!event.isGuestOnly && (
           <>
             <SectionTitle>Food & Drinks</SectionTitle>
@@ -365,7 +376,6 @@ export default function EventDetailPage({
           </>
         )}
 
-        {/* Host recs */}
         {hostRecs.length > 0 && (
           <>
             <SectionTitle>Host Recommendations</SectionTitle>
@@ -396,7 +406,6 @@ export default function EventDetailPage({
           </>
         )}
 
-        {/* Comments */}
         <Divider sx={{ my: 4 }} />
         <SectionTitle>Comments</SectionTitle>
         <CommentSection eventId={event.id} initialComments={initialComments} />
@@ -484,7 +493,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
 
   const event = await getEvent(site.tenantId, eventId);
   if (!event) return { notFound: true };
-  const showInvite = query?.invite === "true";
 
   // ── Private event access check ────────────────────────────────────────────
   if (event.isPrivate && event.inviteCode) {
@@ -494,17 +502,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
     const valid = submitted === event.inviteCode.toUpperCase();
 
     if (!valid) {
-      // Return only the title — no details, no guest list, nothing else
+      // Lock screen: return only the title; the page renders <EventLocked/>.
       return {
         props: {
-          event: { id: event.id, title: event.title },
           isLocked: true,
-          // empty placeholders so TypeScript is happy
-          initialItems: [],
-          initialGuests: [],
-          initialComments: [],
-          guestCount: 0,
-          allowAnonymous: false,
+          event: { id: event.id, title: event.title },
         },
       };
     }
@@ -518,7 +520,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
     initialPhotos,
     guestCount,
     tenant,
-    dietaryActions,
+    dietaryAlerts,
   ] = await Promise.all([
     getItems(site.tenantId, eventId),
     getGuests(site.tenantId, eventId),
@@ -534,16 +536,16 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
 
   return {
     props: {
-      event,
       isLocked: false,
+      event,
       initialItems,
       initialGuests,
       initialPhotos,
       initialComments,
       guestCount,
       allowAnonymous,
-      showInvite: query.invite === "true",
-      dietaryActions,
+      showInvite: query?.invite === "true",
+      dietaryAlerts,
     },
   };
 };

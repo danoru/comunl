@@ -9,41 +9,30 @@ import {
   DialogTitle,
   Divider,
   FormControlLabel,
+  IconButton,
+  InputAdornment,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import React from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import type { GetServerSideProps } from "next";
 import dayjs, { Dayjs } from "dayjs";
 import { useSession } from "next-auth/react";
-import InputAdornment from "@mui/material/InputAdornment";
-import Avatar from "@mui/material/Avatar";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemButton from "@mui/material/ListItemButton";
-import Paper from "@mui/material/Paper";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import CoHostPicker, { type HostUser } from "../../../src/components/events/CoHostPicker";
 import { adminGuard, getSession } from "../../../src/lib/auth";
 import { getEvent, getGuests, getItems } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 import type { SerializedEvent, SerializedGuest, SerializedItem } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
-
-interface HostUser {
-  userId: string;
-  name: string;
-  email: string;
-  image: string | null;
-}
 
 interface AdminPageProps {
   event: SerializedEvent;
@@ -54,7 +43,6 @@ interface AdminPageProps {
 export default function AdminPage({ event, initialGuests, initialItems }: AdminPageProps) {
   const router = useRouter();
 
-  // ── Edit form state ──────────────────────────────────────────────────────
   const [title, setTitle] = React.useState(event.title);
   const [description, setDescription] = React.useState(event.description ?? "");
   const [location, setLocation] = React.useState(event.location);
@@ -68,31 +56,27 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
   const isAdmin = (session as any)?.isAdmin ?? false;
   const canManageHosts = isAdmin || event.createdBy === currentUserId;
 
-  const [hostSearch, setHostSearch] = React.useState("");
-  const [hostResults, setHostResults] = React.useState<HostUser[]>([]);
-  const [searchingHosts, setSearchingHosts] = React.useState(false);
-
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState("");
   const [saveSuccess, setSaveSuccess] = React.useState(false);
 
-  // ── Host recs state ──────────────────────────────────────────────────────
   const [hosts, setHosts] = React.useState<HostUser[]>([]);
-  const [newHost, setNewHost] = React.useState("");
   const [items, setItems] = React.useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = React.useState<SerializedGuest[]>(initialGuests);
   const [newRec, setNewRec] = React.useState("");
   const [addingRec, setAddingRec] = React.useState(false);
 
-  // ── Delete dialog ────────────────────────────────────────────────────────
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleteConfirm, setDeleteConfirm] = React.useState("");
   const [deleting, setDeleting] = React.useState(false);
+  const [eventUrl, setEventUrl] = React.useState("");
+  React.useEffect(() => {
+    setEventUrl(`${window.location.origin}/events/${event.id}`);
+  }, [event.id]);
 
   const hostRecs = items.filter((i) => i.itemType === "host-rec");
   const flyerValid = /^https?:\/\/(i\.)?imgur\.com\/.+/i.test(flyer);
 
-  // ── Save handler ──────────────────────────────────────────────────────────
   async function handleSave() {
     setSaving(true);
     setSaveError("");
@@ -111,7 +95,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           image: image.trim() || flyer.trim(),
           isFeatured,
           isGuestOnly,
-          hosts,
+          hosts: hosts.map((h) => h.userId),
         }),
       });
 
@@ -130,28 +114,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
     }
   }
 
-  React.useEffect(() => {
-    if (hostSearch.length < 2) {
-      setHostResults([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setSearchingHosts(true);
-      try {
-        const res = await fetch(`/api/users/search?q=${encodeURIComponent(hostSearch)}`);
-        const data = await res.json();
-        // Filter out users already added as hosts
-        setHostResults(data.filter((u: HostUser) => !hosts.some((h) => h.userId === u.userId)));
-      } catch {
-        setHostResults([]);
-      } finally {
-        setSearchingHosts(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [hostSearch, hosts]);
-
-  // ── Add host rec ──────────────────────────────────────────────────────────
   async function handleAddRec() {
     const trimmed = newRec.trim();
     if (!trimmed) return;
@@ -168,23 +130,29 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
       setItems((prev) => [...prev, item]);
       setNewRec("");
     } catch {
-      // silent — item just won't appear
     } finally {
       setAddingRec(false);
     }
   }
 
-  // ── Remove item ───────────────────────────────────────────────────────────
   async function handleRemoveItem(itemId: string) {
     try {
       await fetch(`/api/${event.id}/items/${itemId}`, { method: "DELETE" });
       setItems((prev) => prev.filter((i) => i._id !== itemId));
-    } catch {
-      // silent
-    }
+    } catch {}
   }
 
-  // ── Delete event ──────────────────────────────────────────────────────────
+  async function handleRemoveGuest(guestId: string) {
+    try {
+      await fetch(`/api/${event.id}/rsvp`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId }),
+      });
+      setGuests((prev) => prev.filter((g) => g._id !== guestId));
+    } catch {}
+  }
+
   async function handleDelete() {
     setDeleting(true);
     try {
@@ -214,7 +182,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
       </Head>
 
       <Box sx={{ maxWidth: 680, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
-        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -271,7 +238,32 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           </Alert>
         )}
 
-        {/* ── Event details ── */}
+        <SectionLabel>Sharing</SectionLabel>
+
+        <Box
+          sx={{
+            background: "#fff",
+            border: `1.5px solid ${tokens.border}`,
+            borderRadius: "16px",
+            p: "16px 20px",
+            mb: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <CopyableField label="Event link" value={eventUrl} />
+
+          {event.isPrivate && event.inviteCode && (
+            <CopyableField
+              label="Invite code"
+              value={event.inviteCode}
+              mono
+              helperText="Guests need this code to unlock the event."
+            />
+          )}
+        </Box>
+
         <SectionLabel>Event Details</SectionLabel>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
@@ -310,7 +302,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
             error={!!flyer && !flyerValid}
           />
 
-          {/* Flyer preview */}
           {flyerValid && (
             <Box
               sx={{
@@ -340,7 +331,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Divider sx={{ my: 3 }} />
 
-        {/* ── Toggles ── */}
         <SectionLabel>Options</SectionLabel>
 
         <Box
@@ -419,114 +409,10 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         <Divider sx={{ my: 3 }} />
         <SectionLabel>Co-Hosts</SectionLabel>
 
-        {/* Current hosts */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-          {hosts.length === 0 && (
-            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
-              No co-hosts yet
-            </Typography>
-          )}
-          {hosts.map((host) => (
-            <Chip
-              key={host.userId}
-              avatar={
-                <Avatar src={host.image ?? undefined} sx={{ width: 24, height: 24 }}>
-                  {host.name[0]?.toUpperCase()}
-                </Avatar>
-              }
-              label={
-                <Box>
-                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 600, lineHeight: 1.2 }}>
-                    {host.name}
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.6875rem", color: tokens.muted, lineHeight: 1.2 }}>
-                    {host.email}
-                  </Typography>
-                </Box>
-              }
-              onDelete={
-                canManageHosts
-                  ? () => setHosts((prev) => prev.filter((h) => h.userId !== host.userId))
-                  : undefined
-              }
-              sx={{
-                height: "auto",
-                py: 0.75,
-                background: "#fff",
-                border: `1.5px solid ${tokens.border}`,
-                "& .MuiChip-label": { px: 1 },
-              }}
-            />
-          ))}
-        </Box>
-
-        {/* Search to add */}
-        {canManageHosts && (
-          <Box sx={{ position: "relative" }}>
-            <TextField
-              size="small"
-              fullWidth
-              placeholder="Search by name or email…"
-              value={hostSearch}
-              onChange={(e) => setHostSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon sx={{ fontSize: 18, color: tokens.muted }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {hostResults.length > 0 && (
-              <Paper
-                elevation={4}
-                sx={{
-                  position: "absolute",
-                  top: "calc(100% + 4px)",
-                  left: 0,
-                  right: 0,
-                  zIndex: 10,
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                }}
-              >
-                <List dense disablePadding>
-                  {hostResults.map((user) => (
-                    <ListItem key={user.userId} disablePadding>
-                      <ListItemButton
-                        onClick={() => {
-                          setHosts((prev) => [...prev, user]);
-                          setHostSearch("");
-                          setHostResults([]);
-                        }}
-                        sx={{ gap: 1.5 }}
-                      >
-                        <ListItemAvatar sx={{ minWidth: 36 }}>
-                          <Avatar
-                            src={user.image ?? undefined}
-                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
-                          >
-                            {user.name[0]?.toUpperCase()}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={user.name}
-                          secondary={user.email}
-                          primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 600 }}
-                          secondaryTypographyProps={{ fontSize: "0.75rem" }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            )}
-          </Box>
-        )}
+        <CoHostPicker value={hosts} disabled={!canManageHosts} onChange={setHosts} />
 
         <Divider sx={{ my: 3 }} />
 
-        {/* ── Host recommendations ── */}
         <SectionLabel>Host Recommendations</SectionLabel>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
@@ -572,7 +458,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Divider sx={{ my: 3 }} />
 
-        {/* ── Guest list ── */}
         <SectionLabel>Guest List ({guests.length})</SectionLabel>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 4 }}>
@@ -585,7 +470,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
             <Chip
               key={guest._id}
               label={guest.displayName}
-              onDelete={() => handleRemoveItem(guest._id)}
+              onDelete={() => handleRemoveGuest(guest._id)}
               sx={{
                 background: "#fff",
                 border: `1.5px solid ${tokens.border}`,
@@ -595,7 +480,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           ))}
         </Box>
 
-        {/* ── Food items ── */}
         {(["main", "side", "snack", "dessert", "drink", "supply"] as const).map((cat) => {
           const catItems = items.filter((i) => i.itemType === cat);
           if (catItems.length === 0) return null;
@@ -633,7 +517,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Divider sx={{ my: 3 }} />
 
-        {/* ── Danger zone ── */}
         <SectionLabel>Danger Zone</SectionLabel>
 
         <Box
@@ -660,7 +543,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         </Box>
       </Box>
 
-      {/* ── Delete confirmation dialog ── */}
       <Dialog
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
@@ -718,6 +600,76 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function CopyableField({
+  label,
+  value,
+  mono,
+  helperText,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  helperText?: string;
+}) {
+  const [copied, setCopied] = React.useState(false);
+
+  async function copy() {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard API can fail in insecure contexts; silently ignore.
+    }
+  }
+
+  return (
+    <Box>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 700,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          color: tokens.muted,
+          display: "block",
+          mb: 0.75,
+        }}
+      >
+        {label}
+      </Typography>
+      <TextField
+        size="small"
+        value={value}
+        fullWidth
+        InputProps={{
+          readOnly: true,
+          sx: mono
+            ? { fontFamily: "monospace", letterSpacing: "0.15em", fontWeight: 600 }
+            : undefined,
+          endAdornment: (
+            <InputAdornment position="end">
+              <Tooltip title={copied ? "Copied!" : "Copy"} placement="top" arrow>
+                <span>
+                  <IconButton size="small" onClick={copy} disabled={!value}>
+                    <ContentCopyRoundedIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </InputAdornment>
+          ),
+        }}
+      />
+      {helperText && (
+        <Typography variant="caption" sx={{ color: tokens.muted, mt: 0.5, display: "block" }}>
+          {helperText}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const eventId = context.params?.eventId as string;
   const site = getSiteConfig();
@@ -730,8 +682,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (guard !== null) {
     const session = await getSession(context);
     const userId = (session as any)?.userId as string | undefined;
-    const isHost = userId && (event.hosts ?? []).includes(userId);
-    if (!isHost) return guard;
+    const isHost = !!userId && (event.hosts ?? []).includes(userId);
+    const isCreator = !!userId && event.createdBy === userId;
+    if (!isHost && !isCreator) return guard;
   }
 
   const [initialGuests, initialItems] = await Promise.all([

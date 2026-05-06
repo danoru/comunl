@@ -23,9 +23,9 @@ import {
   type User,
 } from "../models";
 
-// ─── Connection ───────────────────────────────────────────────────────────────
-
 let cachedClient: MongoClient | null = null;
+
+const DB_NAME = process.env.MONGODB_DB ?? "comunl";
 
 export async function getClient(): Promise<MongoClient> {
   if (cachedClient) return cachedClient;
@@ -34,12 +34,15 @@ export async function getClient(): Promise<MongoClient> {
   return cachedClient;
 }
 
-async function col<T extends Document>(name: string): Promise<Collection<T>> {
+export async function getDb() {
   const client = await getClient();
-  return client.db("comunl").collection<T>(name);
+  return client.db(DB_NAME);
 }
 
-// ─── Parse helpers ────────────────────────────────────────────────────────────
+async function col<T extends Document>(name: string): Promise<Collection<T>> {
+  const db = await getDb();
+  return db.collection<T>(name);
+}
 
 function parseMany<T>(schema: z.ZodType<T>, docs: unknown[]): T[] {
   return docs.flatMap((doc) => {
@@ -57,8 +60,6 @@ function parseOne<T>(schema: z.ZodType<T>, doc: unknown): T {
 }
 
 const withId = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) => schema.extend({ _id: z.any() });
-
-// ─── Events ───────────────────────────────────────────────────────────────────
 
 export async function getEvents(
   tenantId: string,
@@ -111,8 +112,6 @@ export async function deleteEvent(tenantId: string, eventId: string): Promise<bo
   return result.modifiedCount > 0;
 }
 
-// ─── Items (food, host-rec — NOT guests) ─────────────────────────────────────
-
 export async function getItems(
   tenantId: string,
   eventId: string,
@@ -144,8 +143,6 @@ export async function deleteItem(
   const result = await c.deleteOne({ _id: new ObjectId(itemId), tenantId, eventId });
   return result.deletedCount > 0;
 }
-
-// ─── Guests ───────────────────────────────────────────────────────────────────
 
 export async function getGuests(tenantId: string, eventId: string): Promise<SerializedGuest[]> {
   const c = await col("guests");
@@ -180,14 +177,16 @@ export async function addGuest(
 export async function deleteGuest(
   tenantId: string,
   eventId: string,
-  guestId: string
+  guestId: string,
+  userId?: string
 ): Promise<boolean> {
   const c = await col("guests");
-  const result = await c.deleteOne({ _id: new ObjectId(guestId), tenantId, eventId });
+  const filter: any = { _id: new ObjectId(guestId), tenantId, eventId };
+  if (userId) filter.userId = userId;
+  const result = await c.deleteOne(filter);
   return result.deletedCount > 0;
 }
 
-// Check if a user has already RSVP'd to an event
 export async function getExistingRSVP(
   tenantId: string,
   eventId: string,
@@ -198,8 +197,6 @@ export async function getExistingRSVP(
   if (!doc) return null;
   return serializeGuest(parseOne(withId(GuestSchema), doc) as any);
 }
-
-// ─── Comments ─────────────────────────────────────────────────────────────────
 
 export async function getComments(tenantId: string, eventId: string): Promise<SerializedComment[]> {
   const c = await col("comments");
@@ -232,7 +229,7 @@ export async function deleteComment(
   tenantId: string,
   eventId: string,
   commentId: string,
-  userId?: string // if provided, only delete if owned by this user
+  userId?: string
 ): Promise<boolean> {
   const c = await col("comments");
   const filter: any = { _id: new ObjectId(commentId), tenantId, eventId };
@@ -240,8 +237,6 @@ export async function deleteComment(
   const result = await c.deleteOne(filter);
   return result.deletedCount > 0;
 }
-
-// ─── Users ────────────────────────────────────────────────────────────────────
 
 export async function getUser(userId: string): Promise<SerializedUser | null> {
   const c = await col("users");
@@ -296,8 +291,6 @@ export async function getDietaryAlerts(tenantId: string, eventId: string): Promi
 
   return [...new Set(all)].sort();
 }
-
-// ─── Tenants ──────────────────────────────────────────────────────────────────
 
 export async function getTenant(tenantId: string) {
   const c = await col("tenants");

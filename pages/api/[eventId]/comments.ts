@@ -1,4 +1,3 @@
-// pages/api/[eventId]/comments.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
@@ -49,11 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "DELETE") {
+    if (!userId) return res.status(401).json({ message: "Not signed in" });
+
     const { commentId } = req.body as { commentId: string };
     if (!commentId) return res.status(400).json({ message: "commentId required" });
 
     const isAdmin = (session as any)?.isAdmin ?? false;
-    // Admins can delete any comment; users can only delete their own
+
     const deleted = await deleteComment(tenantId, eventId, commentId, isAdmin ? undefined : userId);
 
     if (!deleted) return res.status(404).json({ message: "Comment not found or not yours" });

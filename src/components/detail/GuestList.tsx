@@ -34,8 +34,6 @@ const PIP_COLORS = [
   "#4CAF50",
 ];
 
-// ─── GuestList ────────────────────────────────────────────────────────────────
-
 interface GuestListProps {
   guests: SerializedGuest[];
   totalCount: number;
@@ -62,7 +60,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
 
         return (
           <Box key={guest._id}>
-            {/* Main guest chip */}
             <Box
               sx={{
                 display: "flex",
@@ -78,7 +75,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
               }}
               onClick={() => hasAdditional && setExpandedGuest(isExpanded ? null : guest._id)}
             >
-              {/* Avatar — from Google if available */}
               {guest.userId ? (
                 <Avatar
                   src={undefined}
@@ -115,7 +111,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
                 {guest.displayName}
               </Typography>
 
-              {/* +N badge if bringing additional guests */}
               {hasAdditional && (
                 <Chip
                   label={`+${additionalGuests.length}`}
@@ -131,7 +126,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
                 />
               )}
 
-              {/* Expand toggle if named additional guests */}
               {namedAdditional.length > 0 && (
                 <IconButton size="small" sx={{ p: 0.25, ml: -0.25 }}>
                   {isExpanded ? (
@@ -143,7 +137,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
               )}
             </Box>
 
-            {/* Expanded additional guest names */}
             {namedAdditional.length > 0 && (
               <Collapse in={isExpanded}>
                 <Box
@@ -169,8 +162,6 @@ export function GuestList({ guests, totalCount }: GuestListProps) {
     </Box>
   );
 }
-
-// ─── RSVPBar ──────────────────────────────────────────────────────────────────
 
 interface RSVPBarProps {
   eventId: string;
@@ -364,7 +355,7 @@ export function RSVPBar({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 2, pb: "env(safe-area-inset-bottom, 16px" }}>
+        <DialogContent sx={{ pt: 2, pb: "env(safe-area-inset-bottom, 16px)" }}>
           {step === "done" ? (
             <Box sx={{ textAlign: "center", py: 3 }}>
               <Typography sx={{ fontSize: "3rem", mb: 1.5 }}>🎉</Typography>
@@ -435,9 +426,7 @@ export function RSVPBar({
               </Button>
             </Box>
           ) : (
-            // Step 1: identity
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, pb: 2 }}>
-              {/* Signed in — show profile */}
               {isSignedIn ? (
                 <Box
                   sx={{
@@ -462,7 +451,6 @@ export function RSVPBar({
                   </Box>
                 </Box>
               ) : allowAnonymous ? (
-                // Anonymous fallback
                 <TextField
                   label="Your name *"
                   value={anonName}
@@ -473,7 +461,6 @@ export function RSVPBar({
                   error={!!error}
                 />
               ) : (
-                // Auth required
                 <Box sx={{ textAlign: "center", py: 2 }}>
                   <Typography sx={{ mb: 2, color: tokens.muted }}>
                     You need to sign in to RSVP for this event.
@@ -484,7 +471,6 @@ export function RSVPBar({
                 </Box>
               )}
 
-              {/* Sign in nudge for anonymous flow */}
               {!isSignedIn && allowAnonymous && (
                 <Box
                   sx={{

@@ -10,6 +10,10 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -17,8 +21,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { getSiteConfig } from "../../src/models";
+import CoHostPicker, { type HostUser } from "../../src/components/events/CoHostPicker";
 
 import { tokens } from "../../src/styles/theme";
+
+type AnonRsvpMode = "default" | "yes" | "no";
 
 interface FormState {
   title: string;
@@ -29,6 +36,9 @@ interface FormState {
   image: string;
   isFeatured: boolean;
   isGuestOnly: boolean;
+  isPrivate: boolean;
+  allowAnonymousGuests: AnonRsvpMode;
+  hosts: HostUser[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -40,6 +50,9 @@ const EMPTY_FORM: FormState = {
   image: "",
   isFeatured: false,
   isGuestOnly: false,
+  isPrivate: false,
+  allowAnonymousGuests: "default",
+  hosts: [],
 };
 
 const IMGUR_RE = /^https?:\/\/(i\.)?imgur\.com\/.+/i;
@@ -55,7 +68,6 @@ export default function NewEventPage() {
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
-    // Clear error on change
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
@@ -80,6 +92,9 @@ export default function NewEventPage() {
     setServerError("");
 
     try {
+      const allowAnonymous: boolean | null =
+        form.allowAnonymousGuests === "default" ? null : form.allowAnonymousGuests === "yes";
+
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,6 +107,9 @@ export default function NewEventPage() {
           image: form.image.trim() || form.flyer.trim() || "",
           isFeatured: form.isFeatured,
           isGuestOnly: form.isGuestOnly,
+          isPrivate: form.isPrivate,
+          hosts: form.hosts.map((h) => h.userId),
+          allowAnonymousGuests: allowAnonymous,
           createdBy: (session as any)?.userId,
         }),
       });
@@ -111,7 +129,6 @@ export default function NewEventPage() {
     }
   }
 
-  // Live preview of flyer URL
   const flyerPreviewUrl = IMGUR_RE.test(form.flyer) ? form.flyer : null;
 
   return (
@@ -121,7 +138,6 @@ export default function NewEventPage() {
       </Head>
 
       <Box sx={{ maxWidth: 600, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
-        {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography
             variant="caption"
@@ -147,7 +163,6 @@ export default function NewEventPage() {
         )}
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-          {/* ── Basic info ── */}
           <SectionLabel>Event Details</SectionLabel>
 
           <TextField
@@ -196,7 +211,6 @@ export default function NewEventPage() {
 
           <Divider sx={{ my: 0.5 }} />
 
-          {/* ── Flyer ── */}
           <SectionLabel>Flyer / Image</SectionLabel>
 
           <TextField
@@ -211,7 +225,6 @@ export default function NewEventPage() {
             placeholder="https://i.imgur.com/abc123.png"
           />
 
-          {/* Live preview */}
           {flyerPreviewUrl && (
             <Box
               sx={{
@@ -235,7 +248,6 @@ export default function NewEventPage() {
             </Box>
           )}
 
-          {/* Separate thumbnail URL — optional if different from flyer */}
           <TextField
             label="Thumbnail URL (optional)"
             value={form.image}
@@ -248,7 +260,6 @@ export default function NewEventPage() {
 
           <Divider sx={{ my: 0.5 }} />
 
-          {/* ── Options ── */}
           <SectionLabel>Options</SectionLabel>
 
           <Box
@@ -320,7 +331,108 @@ export default function NewEventPage() {
             />
           </Box>
 
-          {/* ── Submit ── */}
+          <Divider sx={{ my: 0.5 }} />
+
+          <SectionLabel>Privacy & RSVPs</SectionLabel>
+
+          <Box
+            sx={{
+              background: "#fff",
+              border: `1.5px solid ${tokens.border}`,
+              borderRadius: "16px",
+              p: "8px 20px",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={form.isPrivate}
+                  onChange={(e) => set("isPrivate", e.target.checked)}
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: tokens.orange,
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: tokens.orange,
+                    },
+                  }}
+                />
+              }
+              label={
+                <Box>
+                  <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
+                    Private event
+                  </Typography>
+                  <Typography variant="caption">
+                    {form.isPrivate
+                      ? "An invite code will be generated. Share it with guests so they can unlock the event."
+                      : "Anyone with the link can view this event."}
+                  </Typography>
+                </Box>
+              }
+              sx={{ py: 1 }}
+            />
+
+            <Divider />
+
+            <FormControl sx={{ py: 1.5 }}>
+              <FormLabel
+                sx={{
+                  fontSize: "0.9375rem",
+                  fontWeight: 500,
+                  color: tokens.navy,
+                  mb: 0.5,
+                  "&.Mui-focused": { color: tokens.navy },
+                }}
+              >
+                Anonymous RSVPs
+              </FormLabel>
+              <Typography variant="caption" sx={{ mb: 1 }}>
+                Let guests RSVP without signing in?
+              </Typography>
+              <RadioGroup
+                value={form.allowAnonymousGuests}
+                onChange={(e) => set("allowAnonymousGuests", e.target.value as AnonRsvpMode)}
+              >
+                <FormControlLabel
+                  value="default"
+                  control={
+                    <Radio size="small" sx={{ "&.Mui-checked": { color: tokens.orange } }} />
+                  }
+                  label={<Typography sx={{ fontSize: "0.875rem" }}>Use site default</Typography>}
+                />
+                <FormControlLabel
+                  value="yes"
+                  control={
+                    <Radio size="small" sx={{ "&.Mui-checked": { color: tokens.orange } }} />
+                  }
+                  label={
+                    <Typography sx={{ fontSize: "0.875rem" }}>Allow anonymous RSVPs</Typography>
+                  }
+                />
+                <FormControlLabel
+                  value="no"
+                  control={
+                    <Radio size="small" sx={{ "&.Mui-checked": { color: tokens.orange } }} />
+                  }
+                  label={
+                    <Typography sx={{ fontSize: "0.875rem" }}>Require guests to sign in</Typography>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
+          <Divider sx={{ my: 0.5 }} />
+
+          <SectionLabel>Co-hosts (optional)</SectionLabel>
+          <Typography variant="caption" sx={{ mt: -1.5, mb: 0.5 }}>
+            Co-hosts can edit the event and manage RSVPs.
+          </Typography>
+          <CoHostPicker value={form.hosts} onChange={(hosts) => set("hosts", hosts)} />
+
           <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
             <Button
               variant="contained"

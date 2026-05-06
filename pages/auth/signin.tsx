@@ -91,12 +91,12 @@ export default function SignInPage() {
               mb: 3.5,
             }}
           >
-            Admin access only
+            Sign in to track your RSVPs and manage your events
           </Typography>
 
           {isAccessDenied && (
             <Alert severity="error" sx={{ mb: 2.5, borderRadius: "12px", textAlign: "left" }}>
-              Your email isn't on the admin list. Contact the site owner to get access.
+              We couldn't sign you in. Please try again or contact the site owner.
             </Alert>
           )}
 
@@ -120,7 +120,7 @@ export default function SignInPage() {
           </Button>
 
           <Typography variant="caption" sx={{ color: tokens.muted }}>
-            Only authorised emails can sign in.
+            We use Google to keep things simple.
           </Typography>
         </Box>
       </Box>

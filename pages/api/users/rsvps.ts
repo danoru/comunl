@@ -1,10 +1,7 @@
-// Returns all events the signed-in user has RSVP'd to,
-// with event titles joined for display.
-
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
-import { getClient } from "../../../src/lib/db";
+import { getDb } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,10 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!userId) return res.status(401).json({ message: "Not signed in" });
 
   const { tenantId } = getSiteConfig();
-  const client = await getClient();
-  const db = client.db("comunl");
+  const db = await getDb();
 
-  // Aggregate guest records with their event titles in one query
   const rsvps = await db
     .collection("guests")
     .aggregate([
@@ -44,13 +39,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       {
         $project: {
-          eventData: 0, // remove the joined array
+          eventData: 0,
         },
       },
     ])
     .toArray();
 
-  // Serialise ObjectIds
   const serialised = rsvps.map((r) => ({
     ...r,
     _id: r._id.toString(),

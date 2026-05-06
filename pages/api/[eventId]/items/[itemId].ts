@@ -1,7 +1,6 @@
-// DELETE /api/:eventId/items/:itemId — remove a food item or guest
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import { deleteItem } from "../../../../src/lib/db";
+import { requireEventEditor } from "../../../../src/lib/auth";
+import { deleteItem, getEvent } from "../../../../src/lib/db";
 import { getSiteConfig } from "../../../../src/models";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,6 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { eventId, itemId } = req.query as { eventId: string; itemId: string };
   const { tenantId } = getSiteConfig();
+
+  const event = await getEvent(tenantId, eventId);
+  if (!event) return res.status(404).json({ message: "Event not found" });
+
+  const auth = await requireEventEditor(req, res, event);
+  if (!auth) return;
 
   const deleted = await deleteItem(tenantId, eventId, itemId);
   if (!deleted) return res.status(404).json({ message: "Item not found" });

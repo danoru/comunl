@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    // Check if anonymous guests are allowed
     const [event, tenant] = await Promise.all([getEvent(tenantId, eventId), getTenant(tenantId)]);
 
     if (!event) return res.status(404).json({ message: "Event not found" });
@@ -37,7 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tenantDefault = tenant?.allowAnonymousGuests ?? true;
     const allowAnon = resolveAnonymousGuests(event, tenantDefault);
 
-    // If not signed in and anonymous not allowed, reject
     if (!userId && !allowAnon) {
       return res.status(403).json({
         message: "Sign in required to RSVP for this event",
@@ -45,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // If signed in, check for duplicate RSVP
     if (userId) {
       const existing = await getExistingRSVP(tenantId, eventId, userId);
       if (existing) {
@@ -74,12 +71,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "DELETE") {
-    // Guests can delete their own RSVP; admins can delete any
+    if (!userId) return res.status(401).json({ message: "Not signed in" });
+
     const { guestId } = req.body as { guestId: string };
     if (!guestId) return res.status(400).json({ message: "guestId required" });
 
+    const event = await getEvent(tenantId, eventId);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
     const isAdmin = (session as any)?.isAdmin ?? false;
-    const deleted = await deleteGuest(tenantId, eventId, guestId);
+    const isEditor = isAdmin || event.createdBy === userId || (event.hosts ?? []).includes(userId);
+
+    const deleted = await deleteGuest(tenantId, eventId, guestId, isEditor ? undefined : userId);
     if (!deleted) return res.status(404).json({ message: "RSVP not found" });
     return res.status(200).json({ success: true });
   }
