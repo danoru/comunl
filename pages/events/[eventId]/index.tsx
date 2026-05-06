@@ -19,6 +19,7 @@ import ShareButton from "../../../src/components/detail/ShareButton";
 import CommentSection from "../../../src/components/detail/CommentSection";
 import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
 import EventLocked from "../../../src/components/detail/EventLocked";
+import HostRecsWishlist from "../../../src/components/detail/HostRecsWishlist";
 
 import {
   getDietaryAlerts,
@@ -379,23 +380,7 @@ export default function EventDetailPage(props: EventDetailPageProps) {
         {hostRecs.length > 0 && (
           <>
             <SectionTitle>Host Recommendations</SectionTitle>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {hostRecs.map((rec) => (
-                <Chip
-                  key={rec._id}
-                  label={rec.item}
-                  sx={{
-                    background: "#fff",
-                    border: `1.5px solid ${tokens.border}`,
-                    borderRadius: "100px",
-                    fontWeight: 500,
-                    fontSize: "0.875rem",
-                    height: 36,
-                    px: 0.5,
-                  }}
-                />
-              ))}
-            </Box>
+            <HostRecsWishlist eventId={event.id} items={items} onChange={setItems} />
           </>
         )}
         <Divider sx={{ my: 4 }} />

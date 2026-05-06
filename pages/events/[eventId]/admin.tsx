@@ -414,6 +414,10 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         <Divider sx={{ my: 3 }} />
 
         <SectionLabel>Host Recommendations</SectionLabel>
+        <Typography variant="caption" sx={{ color: tokens.muted, mt: -1, mb: 1.5, display: "block" }}>
+          Things you'd like guests to bring. They'll see a "still needed" list and can claim
+          items from the event page.
+        </Typography>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
           {hostRecs.length === 0 && (
@@ -421,18 +425,35 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
               No recommendations yet
             </Typography>
           )}
-          {hostRecs.map((rec) => (
-            <Chip
-              key={rec._id}
-              label={rec.item}
-              onDelete={() => handleRemoveItem(rec._id)}
-              sx={{
-                background: "#fff",
-                border: `1.5px solid ${tokens.border}`,
-                fontWeight: 500,
-              }}
-            />
-          ))}
+          {hostRecs.map((rec) => {
+            const claimed = !!(rec.userId || rec.guestName);
+            const who = rec.guestName ?? "someone";
+            return (
+              <Chip
+                key={rec._id}
+                label={
+                  claimed ? (
+                    <Box component="span">
+                      <Box component="span" sx={{ fontWeight: 600 }}>
+                        {rec.item}
+                      </Box>
+                      <Box component="span" sx={{ color: tokens.muted, ml: 0.75 }}>
+                        · {who}
+                      </Box>
+                    </Box>
+                  ) : (
+                    rec.item
+                  )
+                }
+                onDelete={() => handleRemoveItem(rec._id)}
+                sx={{
+                  background: claimed ? tokens.greenBg : "#fff",
+                  border: `1.5px solid ${claimed ? "rgba(6, 214, 160, 0.35)" : tokens.border}`,
+                  fontWeight: 500,
+                }}
+              />
+            );
+          })}
         </Box>
 
         <Box sx={{ display: "flex", gap: 1 }}>

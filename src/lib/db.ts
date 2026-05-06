@@ -144,6 +144,35 @@ export async function deleteItem(
   return result.deletedCount > 0;
 }
 
+export async function getItem(
+  tenantId: string,
+  eventId: string,
+  itemId: string
+): Promise<SerializedItem | null> {
+  const c = await col("items");
+  const doc = await c.findOne({ _id: new ObjectId(itemId), tenantId, eventId });
+  if (!doc) return null;
+  return serializeItem(parseOne(withId(ItemSchema), doc) as any);
+}
+
+export async function updateItem(
+  tenantId: string,
+  eventId: string,
+  itemId: string,
+  set: Partial<Omit<Item, "tenantId" | "eventId">>,
+  unset: (keyof Item)[] = []
+): Promise<boolean> {
+  const c = await col("items");
+  const update: Record<string, unknown> = {};
+  if (Object.keys(set).length > 0) update.$set = set;
+  if (unset.length > 0) {
+    update.$unset = Object.fromEntries(unset.map((k) => [k, ""]));
+  }
+  if (!update.$set && !update.$unset) return false;
+  const result = await c.updateOne({ _id: new ObjectId(itemId), tenantId, eventId }, update);
+  return result.modifiedCount > 0;
+}
+
 export async function getGuests(tenantId: string, eventId: string): Promise<SerializedGuest[]> {
   const c = await col("guests");
   const docs = await c.find({ tenantId, eventId }).sort({ createdAt: 1 }).toArray();
