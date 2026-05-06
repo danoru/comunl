@@ -12,8 +12,6 @@ import Button from "@mui/material/Button";
 import type { SerializedEvent } from "../../models";
 import { tokens } from "../../styles/theme";
 
-// ─── EventCard ────────────────────────────────────────────────────────────────
-
 interface EventCardProps {
   event: SerializedEvent;
 }
@@ -27,6 +25,8 @@ export function EventCard({ event }: EventCardProps) {
       ? "Today!"
       : `${daysUntil}d away`;
 
+  const thumbnail = event.image || event.flyer || null;
+
   return (
     <Link href={`/events/${event.id}`} style={{ textDecoration: "none", display: "block" }}>
       <Card
@@ -38,7 +38,6 @@ export function EventCard({ event }: EventCardProps) {
         }}
       >
         <CardActionArea sx={{ display: "flex", alignItems: "stretch" }}>
-          {/* Thumbnail */}
           <Box
             sx={{
               width: 100,
@@ -49,12 +48,30 @@ export function EventCard({ event }: EventCardProps) {
               justifyContent: "center",
               fontSize: "2.2rem",
               alignSelf: "stretch",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            {getEventEmoji(event.title)}
+            {thumbnail ? (
+              <Box
+                component="img"
+                src={thumbnail}
+                alt=""
+                loading="lazy"
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            ) : (
+              getEventEmoji(event.title)
+            )}
           </Box>
 
-          {/* Body */}
           <Box sx={{ flex: 1, p: "14px 16px", minWidth: 0 }}>
             <Box sx={{ display: "flex", gap: 1, mb: 0.75, flexWrap: "wrap" }}>
               <Chip
@@ -111,8 +128,6 @@ export function EventCard({ event }: EventCardProps) {
     </Link>
   );
 }
-
-// ─── EventList ────────────────────────────────────────────────────────────────
 
 interface EventListProps {
   events: SerializedEvent[];
@@ -223,8 +238,6 @@ export function EventList({ events, showFilters = true }: EventListProps) {
   );
 }
 
-// ─── Section divider ──────────────────────────────────────────────────────────
-
 function SectionDivider({ label, count }: { label: string; count: number }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2, mt: 3 }}>
@@ -254,8 +267,6 @@ function SectionDivider({ label, count }: { label: string; count: number }) {
     </Box>
   );
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getEventEmoji(title: string): string {
   const t = title.toLowerCase();
