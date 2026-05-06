@@ -12,6 +12,7 @@ import type { GetServerSideProps } from "next";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 
+import OpenGraph from "../../../src/components/OpenGraph";
 import EnvelopeOverlay from "../../../src/components/events/EnvelopeOverlay";
 import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
@@ -139,6 +140,13 @@ export default function EventDetailPage(props: EventDetailPageProps) {
         <title>{event.title} — Comunl</title>
         <meta name="description" content={event.description || event.title} />
       </Head>
+      <OpenGraph
+        description={event.description || `${event.title} · ${event.location}`}
+        image={event.flyer || `/api/og/${event.id}`}
+        title={event.title}
+        type="article"
+        url={`/events/${event.id}`}
+      />
 
       {inviteVisible && (
         <EnvelopeOverlay eventTitle={event.title} onReveal={() => setInviteVisible(false)} />

@@ -10,6 +10,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import Layout from "@/components/layout/Layout";
+import OpenGraph from "@/components/OpenGraph";
 import theme from "@/styles/theme";
 import { getSiteConfig } from "@/models";
 
@@ -33,6 +34,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithSession) {
             <meta name="theme-color" content={theme.palette.secondary.main} />
             <link rel="shortcut icon" href="/favicon.ico" />
           </Head>
+          <OpenGraph />
           <Layout siteConfig={site}>
             <Component {...pageProps} />
           </Layout>
