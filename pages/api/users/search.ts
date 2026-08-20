@@ -33,29 +33,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const users = await col
       .find({ tenantId, userId: { $in: ids } })
-      .project({ userId: 1, name: 1, email: 1, image: 1 })
+      .project({ userId: 1, name: 1, handle: 1, image: 1 })
       .limit(MAX_IDS)
       .toArray();
     return res.status(200).json(
       users.map((u) => ({
         userId: u.userId,
         name: u.name,
-        email: u.email,
+        handle: u.handle ?? null,
         image: u.image ?? null,
       }))
     );
   }
 
   const q = ((req.query.q as string) ?? "").trim();
-  if (q.length < 2) return res.status(200).json([]);
+  if (q.length < 2 || q.length > 100) return res.status(200).json([]);
 
+  // Email stays matchable (so typing someone's address finds them) but is
+  // never returned — only name/handle/image leave this endpoint.
   const regex = new RegExp(escapeRegex(q), "i");
   const users = await col
     .find({
       tenantId,
       $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }],
     })
-    .project({ userId: 1, name: 1, email: 1, image: 1 })
+    .project({ userId: 1, name: 1, handle: 1, image: 1 })
     .limit(8)
     .toArray();
 
@@ -63,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     users.map((u) => ({
       userId: u.userId,
       name: u.name,
-      email: u.email,
+      handle: u.handle ?? null,
       image: u.image ?? null,
     }))
   );

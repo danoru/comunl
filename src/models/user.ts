@@ -6,6 +6,9 @@ export const UserSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   image: z.string().optional(),
+  // Written by scripts/migrate-social.ts (derived from email local-part).
+  handle: z.string().optional(),
+  profileVisibility: z.enum(["public", "mutual", "private"]).optional(),
   phone: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),

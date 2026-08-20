@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
 import { requireEventEditor } from "../../../src/lib/auth";
 import { getEvent, updateEvent, deleteEvent } from "../../../src/lib/db";
 import { getSiteConfig, UpdateEventSchema } from "../../../src/models";
@@ -10,7 +12,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const event = await getEvent(tenantId, eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
-    return res.status(200).json(event);
+
+    // The invite code is only for hosts/admins to share — never expose it to
+    // anyone who merely knows the 6-char event id.
+    const session = await getServerSession(req, res, authOptions);
+    const userId = (session as any)?.userId as string | undefined;
+    const isAdmin = (session as any)?.isAdmin ?? false;
+    const isEditor =
+      isAdmin ||
+      (!!userId &&
+        (event.createdBy === userId ||
+          event.hosts.includes(userId) ||
+          (event.hostUserIds ?? []).includes(userId)));
+
+    return res.status(200).json(isEditor ? event : { ...event, inviteCode: null });
   }
 
   if (req.method === "PATCH" || req.method === "DELETE") {

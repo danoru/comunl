@@ -1,16 +1,17 @@
-import React from "react";
-import Head from "next/head";
-import Link from "next/link";
-import type { GetServerSideProps } from "next";
-
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
+import type { GetServerSideProps } from "next";
+import Head from "next/head";
+import Link from "next/link";
+import React from "react";
 
 import { EventList } from "../src/components/events/EventCard";
-import { getEvents, getFeaturedEvents } from "../src/lib/db";
-import { getSiteConfig } from "../src/models";
+import RallyStrip from "../src/components/intents/RallyStrip";
+import { getSession } from "../src/lib/auth";
+import { getFeaturedEvents, getVisibleEvents } from "../src/lib/db";
+import { getSiteConfig, isMainSite } from "../src/models";
 import type { SerializedEvent } from "../src/models";
 import { tokens } from "../src/styles/theme";
 
@@ -18,6 +19,7 @@ interface HomePageProps {
   featuredEvents: SerializedEvent[];
   allEvents: SerializedEvent[];
   isInstance: boolean;
+  showRally: boolean;
   siteName: string;
 }
 
@@ -25,6 +27,7 @@ export default function HomePage({
   featuredEvents,
   allEvents,
   isInstance,
+  showRally,
   siteName,
 }: HomePageProps) {
   const featured = featuredEvents[0] ?? null;
@@ -34,23 +37,25 @@ export default function HomePage({
       <Head>
         <title>{isInstance ? siteName : "Comunl"}</title>
         <meta
-          name="description"
           content={
             isInstance
               ? `Events hosted by ${siteName}`
               : "Plan parties, track RSVPs, coordinate who's bringing what."
           }
+          name="description"
         />
       </Head>
 
       {isInstance ? <InstanceHero featured={featured} siteName={siteName} /> : <ProductHero />}
+
+      {/* Rally teaser — Comunl only, renders nothing when signed out */}
+      {showRally && <RallyStrip />}
 
       {/* Only show event list on instance sites, not the product landing page */}
       {isInstance && (
         <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
           <Box sx={{ mb: 3 }}>
             <Typography
-              variant="caption"
               sx={{
                 fontFamily: '"Bebas Neue", sans-serif',
                 letterSpacing: "0.25em",
@@ -58,10 +63,11 @@ export default function HomePage({
                 display: "block",
                 mb: 0.5,
               }}
+              variant="caption"
             >
               {siteName.toUpperCase()}
             </Typography>
-            <Typography variant="h2" sx={{ fontSize: "clamp(32px, 7vw, 48px)" }}>
+            <Typography sx={{ fontSize: "clamp(32px, 7vw, 48px)" }} variant="h2">
               All Events
             </Typography>
           </Box>
@@ -120,7 +126,6 @@ function InstanceHero({
 
       <Box sx={{ position: "relative", zIndex: 1 }}>
         <Typography
-          variant="caption"
           sx={{
             fontFamily: '"Bebas Neue", sans-serif',
             letterSpacing: "0.3em",
@@ -128,12 +133,13 @@ function InstanceHero({
             display: "block",
             mb: 2,
           }}
+          variant="caption"
         >
           ✦ {siteName.toUpperCase()} ✦
         </Typography>
         <Typography
-          variant="h1"
           sx={{ fontSize: "clamp(52px, 14vw, 100px)", color: "#fff", mb: 0.5 }}
+          variant="h1"
         >
           {featured?.title ?? "No Upcoming Events"}
         </Typography>
@@ -183,19 +189,19 @@ function InstanceHero({
               }}
             >
               <Link href={`/events/${featured.id}`} style={{ textDecoration: "none" }}>
-                <Button variant="contained" size="large">
+                <Button size="large" variant="contained">
                   RSVP Now →
                 </Button>
               </Link>
               <Link href="/events" style={{ textDecoration: "none" }}>
                 <Button
-                  variant="outlined"
                   size="large"
                   sx={{
                     color: "#fff",
                     borderColor: "rgba(255,255,255,0.3)",
                     "&:hover": { borderColor: "#fff" },
                   }}
+                  variant="outlined"
                 >
                   All Events
                 </Button>
@@ -236,7 +242,6 @@ function ProductHero() {
       />
       <Box sx={{ position: "relative", zIndex: 1, maxWidth: 480 }}>
         <Typography
-          variant="caption"
           sx={{
             fontFamily: '"Bebas Neue", sans-serif',
             letterSpacing: "0.3em",
@@ -244,12 +249,13 @@ function ProductHero() {
             display: "block",
             mb: 2,
           }}
+          variant="caption"
         >
           ✦ COMMUNITY EVENT PLANNING ✦
         </Typography>
         <Typography
-          variant="h1"
           sx={{ fontSize: "clamp(64px, 14vw, 120px)", color: "#fff", mb: 2 }}
+          variant="h1"
         >
           BRING{" "}
           <Box component="span" sx={{ color: tokens.yellow }}>
@@ -271,19 +277,19 @@ function ProductHero() {
         </Typography>
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
           <Link href="/events/new" style={{ textDecoration: "none" }}>
-            <Button variant="contained" size="large">
+            <Button size="large" variant="contained">
               Create an Event →
             </Button>
           </Link>
           <Link href="/events" style={{ textDecoration: "none" }}>
             <Button
-              variant="outlined"
               size="large"
               sx={{
                 color: "#fff",
                 borderColor: "rgba(255,255,255,0.3)",
                 "&:hover": { borderColor: "#fff" },
               }}
+              variant="outlined"
             >
               See Demo
             </Button>
@@ -346,7 +352,6 @@ function FeaturesSection() {
       }}
     >
       <Typography
-        variant="caption"
         sx={{
           fontFamily: '"Bebas Neue", sans-serif',
           letterSpacing: "0.25em",
@@ -354,10 +359,11 @@ function FeaturesSection() {
           display: "block",
           mb: 1.5,
         }}
+        variant="caption"
       >
         WHY COMUNL
       </Typography>
-      <Typography variant="h2" sx={{ fontSize: "clamp(36px, 7vw, 56px)", mb: 6 }}>
+      <Typography sx={{ fontSize: "clamp(36px, 7vw, 56px)", mb: 6 }} variant="h2">
         Everything your
         <br />
         party needs.
@@ -399,7 +405,7 @@ function FeaturesSection() {
             >
               {f.icon}
             </Box>
-            <Typography variant="h6" sx={{ mb: 0.75 }}>
+            <Typography sx={{ mb: 0.75 }} variant="h6">
               {f.title}
             </Typography>
             <Typography variant="body2">{f.desc}</Typography>
@@ -412,13 +418,18 @@ function FeaturesSection() {
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const site = getSiteConfig();
+  const session = await getSession(context);
+  const viewer = {
+    userId: (session as any)?.userId as string | undefined,
+    isAdmin: (session as any)?.isAdmin ?? false,
+  };
 
   const [featuredEvents, allEvents] = await Promise.all([
-    getFeaturedEvents(site.tenantId),
+    getFeaturedEvents(site.tenantId, viewer),
     // Only fetch all events for instance sites — product landing page doesn't need them
-    site.isInstance ? getEvents(site.tenantId) : Promise.resolve([]),
+    site.isInstance ? getVisibleEvents(site.tenantId, viewer) : Promise.resolve([]),
   ]);
 
   return {
@@ -426,6 +437,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
       featuredEvents,
       allEvents,
       isInstance: site.isInstance,
+      showRally: isMainSite(site),
       siteName: site.name,
     },
   };

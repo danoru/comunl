@@ -1,14 +1,14 @@
-import React from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import type { GetServerSideProps } from "next";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import React from "react";
 
 import { EventList } from "../../src/components/events/EventCard";
-import { getEvents } from "../../src/lib/db";
+import { getSession } from "../../src/lib/auth";
+import { getVisibleEvents } from "../../src/lib/db";
 import { getSiteConfig } from "../../src/models";
 import type { SerializedEvent } from "../../src/models";
 import { tokens } from "../../src/styles/theme";
@@ -24,7 +24,7 @@ export default function EventsPage({ events, siteName, isInstance }: EventsPageP
     <>
       <Head>
         <title>{isInstance ? `Events — ${siteName}` : "All Events — Comunl"}</title>
-        <meta name="description" content={`Browse all events hosted by ${siteName}`} />
+        <meta content={`Browse all events hosted by ${siteName}`} name="description" />
       </Head>
 
       <Box sx={{ maxWidth: 700, mx: "auto", px: { xs: 2.5, sm: 3 }, py: 5 }}>
@@ -41,7 +41,6 @@ export default function EventsPage({ events, siteName, isInstance }: EventsPageP
         >
           <Box>
             <Typography
-              variant="caption"
               sx={{
                 fontFamily: '"Bebas Neue", sans-serif',
                 letterSpacing: "0.25em",
@@ -49,16 +48,17 @@ export default function EventsPage({ events, siteName, isInstance }: EventsPageP
                 display: "block",
                 mb: 0.5,
               }}
+              variant="caption"
             >
               {isInstance ? siteName.toUpperCase() : "COMUNL"}
             </Typography>
-            <Typography variant="h1" sx={{ fontSize: "clamp(36px, 8vw, 56px)", lineHeight: 1 }}>
+            <Typography sx={{ fontSize: "clamp(36px, 8vw, 56px)", lineHeight: 1 }} variant="h1">
               All Events
             </Typography>
           </Box>
 
           <Link href="/events/new" style={{ textDecoration: "none" }}>
-            <Button variant="contained" sx={{ whiteSpace: "nowrap" }}>
+            <Button sx={{ whiteSpace: "nowrap" }} variant="contained">
               + New Event
             </Button>
           </Link>
@@ -71,9 +71,13 @@ export default function EventsPage({ events, siteName, isInstance }: EventsPageP
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const site = getSiteConfig();
-  const events = await getEvents(site.tenantId);
+  const session = await getSession(context);
+  const events = await getVisibleEvents(site.tenantId, {
+    userId: (session as any)?.userId as string | undefined,
+    isAdmin: (session as any)?.isAdmin ?? false,
+  });
 
   return {
     props: {

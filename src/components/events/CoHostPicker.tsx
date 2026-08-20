@@ -1,25 +1,25 @@
-import React from "react";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import InputAdornment from "@mui/material/InputAdornment";
+
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 import Paper from "@mui/material/Paper";
-import Chip from "@mui/material/Chip";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import React from "react";
 
 import { tokens } from "../../styles/theme";
 
 export interface HostUser {
   userId: string;
   name: string;
-  email: string;
+  handle: string | null;
   image: string | null;
 }
 
@@ -68,7 +68,7 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
     <Box>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
         {value.length === 0 && (
-          <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
+          <Typography sx={{ color: tokens.muted, fontStyle: "italic" }} variant="caption">
             No co-hosts yet
           </Typography>
         )}
@@ -85,12 +85,13 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
                 <Typography sx={{ fontSize: "0.8125rem", fontWeight: 600, lineHeight: 1.2 }}>
                   {host.name}
                 </Typography>
-                <Typography sx={{ fontSize: "0.6875rem", color: tokens.muted, lineHeight: 1.2 }}>
-                  {host.email}
-                </Typography>
+                {host.handle && (
+                  <Typography sx={{ fontSize: "0.6875rem", color: tokens.muted, lineHeight: 1.2 }}>
+                    @{host.handle}
+                  </Typography>
+                )}
               </Box>
             }
-            onDelete={disabled ? undefined : () => remove(host.userId)}
             sx={{
               height: "auto",
               py: 0.75,
@@ -98,6 +99,7 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
               border: `1.5px solid ${tokens.border}`,
               "& .MuiChip-label": { px: 1 },
             }}
+            onDelete={disabled ? undefined : () => remove(host.userId)}
           />
         ))}
       </Box>
@@ -105,11 +107,7 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
       {!disabled && (
         <Box sx={{ position: "relative" }}>
           <TextField
-            size="small"
             fullWidth
-            placeholder="Search by name or email…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -117,6 +115,10 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
                 </InputAdornment>
               ),
             }}
+            placeholder="Search by name or email…"
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
           {results.length > 0 && (
             <Paper
@@ -134,7 +136,7 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
               <List dense disablePadding>
                 {results.map((user) => (
                   <ListItem key={user.userId} disablePadding>
-                    <ListItemButton onClick={() => add(user)} sx={{ gap: 1.5 }}>
+                    <ListItemButton sx={{ gap: 1.5 }} onClick={() => add(user)}>
                       <ListItemAvatar sx={{ minWidth: 36 }}>
                         <Avatar
                           src={user.image ?? undefined}
@@ -145,7 +147,7 @@ export default function CoHostPicker({ value, onChange, disabled }: CoHostPicker
                       </ListItemAvatar>
                       <ListItemText
                         primary={user.name}
-                        secondary={user.email}
+                        secondary={user.handle ? `@${user.handle}` : undefined}
                         slotProps={{
                           primary: { fontSize: "0.875rem", fontWeight: 600 },
                           secondary: { fontSize: "0.75rem" },

@@ -26,8 +26,19 @@ export const SiteConfigSchema = z.object({
 
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;
 
+// The public/main community. Comunl-exclusive features (Rally, the follow
+// graph, public profiles) key off this identity — NOT off `isInstance`, so
+// that setting NEXT_PUBLIC_TENANT_ID=comunl on the main deploy is harmless.
+export const MAIN_TENANT_ID = "comunl";
+
+export function isMainSite(config: Pick<SiteConfig, "tenantId">): boolean {
+  return config.tenantId === MAIN_TENANT_ID;
+}
+
 export function getSiteConfig(): SiteConfig {
-  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID ?? "";
+  // Trimmed: a stray space in the deploy's env var would otherwise become a
+  // tenant id of its own and silently orphan the site from its data.
+  const tenantId = (process.env.NEXT_PUBLIC_TENANT_ID ?? "").trim();
   const isInstance = !!tenantId;
   const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 

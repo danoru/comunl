@@ -1,15 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
-import { getEvents, createEvent } from "../../../src/lib/db";
-import { getSiteConfig, CreateEventSchema } from "../../../src/models";
+
+import {
+  getVisibleEvents,
+  createEvent,
+  getIntent,
+  getUser,
+  updateIntent,
+} from "../../../src/lib/db";
 import { generateEventId, generateInviteCode } from "../../../src/lib/nanoid";
+import { notifyIntentConverted } from "../../../src/lib/notify";
+import { getSiteConfig, isMainSite, CreateEventSchema } from "../../../src/models";
+import { authOptions } from "../auth/[...nextauth]";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { tenantId } = getSiteConfig();
 
   if (req.method === "GET") {
-    const events = await getEvents(tenantId);
+    const session = await getServerSession(req, res, authOptions);
+    const events = await getVisibleEvents(tenantId, {
+      userId: (session as any)?.userId as string | undefined,
+      isAdmin: (session as any)?.isAdmin ?? false,
+    });
     return res.status(200).json(events);
   }
 
@@ -46,6 +58,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       inviteCode,
       createdBy: userId,
     });
+
+    // "Make it happen": link a converted rally to its event (author only).
+    const intentId = typeof req.body?.intentId === "string" ? req.body.intentId : null;
+    if (intentId && isMainSite(site) && userId) {
+      const intent = await getIntent(tenantId, intentId);
+      if (intent && intent.userId === userId && intent.status === "open") {
+        await updateIntent(tenantId, intentId, {
+          status: "converted",
+          convertedEventId: event.id,
+        });
+        const author = await getUser(userId);
+        await notifyIntentConverted(tenantId, intent, event, {
+          userId,
+          name: author?.name ?? intent.authorName,
+          image: author?.image ?? intent.authorImage,
+        });
+      }
+    }
 
     return res.status(201).json(event);
   }
