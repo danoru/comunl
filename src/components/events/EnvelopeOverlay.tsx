@@ -72,14 +72,7 @@ function WaxSeal() {
       <ellipse cx="10" cy="27" rx="5" ry="5" fill={wax} />
       <ellipse cx="14" cy="14" rx="5" ry="6" fill={wax} />
       <circle cx="26" cy="26" r="20" fill={wax} />
-      <circle
-        cx="26"
-        cy="26"
-        r="15"
-        fill="none"
-        stroke="rgba(255,255,255,0.18)"
-        strokeWidth="1"
-      />
+      <circle cx="26" cy="26" r="15" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1" />
       <path
         d="M32 20 A9 9 0 1 0 32 32"
         fill="none"

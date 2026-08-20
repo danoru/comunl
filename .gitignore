@@ -66,3 +66,15 @@ dist/
 # =====================
 .vscode/
 .idea/
+
+# =====================
+# Migration script output (contains real user data — emails, event titles)
+# =====================
+scripts/output/
+
+# =====================
+# Local files
+# =====================
+local/
+.claude/
+*.local.md

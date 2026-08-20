@@ -33,10 +33,7 @@ export default function OpenGraph(props: Props) {
     (site.isInstance
       ? `Events hosted by ${site.name}`
       : "Plan parties, track RSVPs, coordinate who's bringing what.");
-  const image = absoluteUrl(
-    props.image ?? process.env.NEXT_PUBLIC_OG_IMAGE ?? "/og.png",
-    base,
-  );
+  const image = absoluteUrl(props.image ?? process.env.NEXT_PUBLIC_OG_IMAGE ?? "/og.png", base);
   const url = props.url ? absoluteUrl(props.url, base) : base;
 
   return (

@@ -1,12 +1,12 @@
-import React from "react";
-import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-
-import MobileBottomNav from "./MobileBottomNav";
-import Navbar from "./Navbar";
+import Typography from "@mui/material/Typography";
+import React from "react";
 
 import type { SiteConfig } from "../../models";
 import { tokens } from "../../styles/theme";
+
+import MobileBottomNav from "./MobileBottomNav";
+import Navbar from "./Navbar";
 
 // ─── Powered-by badge ─────────────────────────────────────────────────────────
 
@@ -15,7 +15,6 @@ function PoweredBy() {
     <Box
       component="a"
       href="https://comunl.app"
-      target="_blank"
       rel="noopener noreferrer"
       sx={{
         display: "inline-flex",
@@ -33,6 +32,7 @@ function PoweredBy() {
         transition: "color 0.15s",
         "&:hover": { color: tokens.orange },
       }}
+      target="_blank"
     >
       <Box
         component="span"

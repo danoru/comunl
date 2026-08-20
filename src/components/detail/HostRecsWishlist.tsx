@@ -70,10 +70,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
 
   return (
     <Box>
-      <Typography
-        variant="caption"
-        sx={{ color: tokens.muted, display: "block", mb: 2, mt: -1 }}
-      >
+      <Typography variant="caption" sx={{ color: tokens.muted, display: "block", mb: 2, mt: -1 }}>
         Things the host would love someone to bring.
       </Typography>
 

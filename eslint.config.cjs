@@ -4,9 +4,13 @@ const tsPlugin = require("@typescript-eslint/eslint-plugin");
 const tsParser = require("@typescript-eslint/parser");
 
 module.exports = [
+  // Global ignores — a standalone object, otherwise `ignores` only scopes the
+  // config it sits in and `eslint .` still crawls .next/ build artifacts.
+  {
+    ignores: [".next/**", "node_modules/**", "dist/**", "build/**"],
+  },
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: [".next/", "node_modules/", "dist/", "build/"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

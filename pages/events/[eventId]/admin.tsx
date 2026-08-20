@@ -414,9 +414,12 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         <Divider sx={{ my: 3 }} />
 
         <SectionLabel>Host Recommendations</SectionLabel>
-        <Typography variant="caption" sx={{ color: tokens.muted, mt: -1, mb: 1.5, display: "block" }}>
-          Things you'd like guests to bring. They'll see a "still needed" list and can claim
-          items from the event page.
+        <Typography
+          variant="caption"
+          sx={{ color: tokens.muted, mt: -1, mb: 1.5, display: "block" }}
+        >
+          Things you'd like guests to bring. They'll see a "still needed" list and can claim items
+          from the event page.
         </Typography>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
