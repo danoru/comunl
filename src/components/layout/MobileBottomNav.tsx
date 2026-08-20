@@ -1,22 +1,22 @@
-import React from "react";
+import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
+import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
+import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import Avatar from "@mui/material/Avatar";
+import BottomNavigation from "@mui/material/BottomNavigation";
+import Paper from "@mui/material/Paper";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
 
-import Paper from "@mui/material/Paper";
-import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import Avatar from "@mui/material/Avatar";
+import React from "react";
 
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
-import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-
-import type { SiteConfig } from "../../models";
+import { isMainSite, type SiteConfig } from "../../models";
 
 export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig }) {
   const router = useRouter();
@@ -26,14 +26,16 @@ export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const getValue = () => {
-    if (router.pathname === "/") return 0;
-    if (router.pathname.startsWith("/events")) return 1;
+    if (router.pathname === "/") return "home";
+    if (router.pathname.startsWith("/events")) return "events";
+    if (router.pathname.startsWith("/intents")) return "rally";
     if (router.pathname === "/profile") return "profile";
     return false;
   };
 
   return (
     <Paper
+      elevation={3}
       sx={{
         position: "fixed",
         bottom: 0,
@@ -43,29 +45,37 @@ export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig
         display: { xs: "block", sm: "none" },
         borderRadius: 0,
       }}
-      elevation={3}
     >
       <BottomNavigation value={getValue()}>
         <BottomNavigationAction
-          label="Home"
           icon={<HomeRoundedIcon />}
+          label="Home"
+          value="home"
           onClick={() => router.push("/")}
         />
         <BottomNavigationAction
-          label="Events"
           icon={<CelebrationRoundedIcon />}
+          label="Events"
+          value="events"
           onClick={() => router.push("/events")}
         />
+        {isMainSite(siteConfig) && (
+          <BottomNavigationAction
+            icon={<CampaignRoundedIcon />}
+            label="Rally"
+            value="rally"
+            onClick={() => router.push("/intents")}
+          />
+        )}
         {canCreateEvents && session && (
           <BottomNavigationAction
-            label="New Event"
             icon={<AddCircleRoundedIcon />}
+            label="New Event"
+            value="new"
             onClick={() => router.push("/events/new")}
           />
         )}
         <BottomNavigationAction
-          value="profile"
-          label={session ? (session.user?.name?.split(" ")[0] ?? "Me") : "Sign In"}
           icon={
             session?.user?.image ? (
               <Avatar src={session.user.image} sx={{ width: 24, height: 24 }} />
@@ -73,6 +83,8 @@ export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig
               <PersonRoundedIcon />
             )
           }
+          label={session ? (session.user?.name?.split(" ")[0] ?? "Me") : "Sign In"}
+          value="profile"
           onClick={(e) => {
             if (session) setAnchorEl(e.currentTarget);
             else signIn("google");
@@ -82,11 +94,11 @@ export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig
 
       <Menu
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        open={Boolean(anchorEl)}
         PaperProps={{ sx: { borderRadius: "12px", mb: 1 } }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        onClose={() => setAnchorEl(null)}
       >
         <MenuItem disabled sx={{ fontSize: "0.8125rem", opacity: 0.6 }}>
           {session?.user?.email}
