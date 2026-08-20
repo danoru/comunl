@@ -1,11 +1,13 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../pages/api/auth/[...nextauth]";
 import type {
   GetServerSidePropsContext,
   GetServerSidePropsResult,
   NextApiRequest,
   NextApiResponse,
 } from "next";
+import { getServerSession } from "next-auth/next";
+
+import { authOptions } from "../../pages/api/auth/[...nextauth]";
+import { getSiteConfig, isMainSite } from "../models";
 
 export async function getSession(context: GetServerSidePropsContext) {
   return getServerSession(context.req, context.res, authOptions);
@@ -44,6 +46,17 @@ export async function adminGuard(
   }
 
   return null;
+}
+
+// Rally, the follow graph and public profiles are exclusive to the Comunl
+// community: gate on tenant identity, not on whether a tenant id happens to be
+// configured, so the main deploy keeps them even if it sets its id explicitly.
+export function requireMainSite(res: NextApiResponse): boolean {
+  if (!isMainSite(getSiteConfig())) {
+    res.status(404).json({ message: "Not found" });
+    return false;
+  }
+  return true;
 }
 
 export interface ApiAuthInfo {
