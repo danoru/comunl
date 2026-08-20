@@ -1,13 +1,12 @@
-import React from "react";
-import Link from "next/link";
-import dayjs from "dayjs";
-
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import dayjs from "dayjs";
+import Link from "next/link";
+import React from "react";
 
 import type { SerializedEvent } from "../../models";
 import { tokens } from "../../styles/theme";
@@ -17,7 +16,8 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const isPast = dayjs(event.date).isBefore(dayjs());
+  const isPolling = event.dateStatus === "polling";
+  const isPast = !isPolling && dayjs(event.date).isBefore(dayjs());
   const daysUntil = dayjs(event.date).diff(dayjs(), "day");
   const countdownLabel = isPast
     ? `${Math.abs(daysUntil)}d ago`
@@ -54,10 +54,10 @@ export function EventCard({ event }: EventCardProps) {
           >
             {thumbnail ? (
               <Box
-                component="img"
-                src={thumbnail}
                 alt=""
+                component="img"
                 loading="lazy"
+                src={thumbnail}
                 sx={{
                   position: "absolute",
                   inset: 0,
@@ -85,7 +85,20 @@ export function EventCard({ event }: EventCardProps) {
                   letterSpacing: "0.04em",
                 }}
               />
-              {!isPast && (
+              {isPolling && (
+                <Chip
+                  label="DATE TBD — VOTE"
+                  size="small"
+                  sx={{
+                    background: "rgba(255,209,102,0.28)",
+                    color: "#8A6400",
+                    fontWeight: 700,
+                    fontSize: "0.65rem",
+                    letterSpacing: "0.04em",
+                  }}
+                />
+              )}
+              {!isPast && !isPolling && (
                 <Chip
                   label={countdownLabel}
                   size="small"
@@ -100,7 +113,6 @@ export function EventCard({ event }: EventCardProps) {
             </Box>
 
             <Typography
-              variant="h6"
               sx={{
                 fontSize: "1.05rem",
                 mb: 0.375,
@@ -108,17 +120,18 @@ export function EventCard({ event }: EventCardProps) {
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
               }}
+              variant="h6"
             >
               {event.title}
             </Typography>
 
-            <Typography variant="caption" sx={{ display: "block", mb: 1.25 }}>
-              {dayjs(event.date).format("ddd, MMM D · h:mm A")} ·{" "}
+            <Typography sx={{ display: "block", mb: 1.25 }} variant="caption">
+              {isPolling ? "Date TBD" : dayjs(event.date).format("ddd, MMM D · h:mm A")} ·{" "}
               {event.location.replace("--", " / ")}
             </Typography>
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography variant="caption" sx={{ color: tokens.mutedLight, ml: "auto" }}>
+              <Typography sx={{ color: tokens.mutedLight, ml: "auto" }} variant="caption">
                 View event →
               </Typography>
             </Box>
@@ -165,9 +178,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
             {FILTERS.map((f) => (
               <Button
                 key={f.value}
-                variant={filter === f.value ? "contained" : "outlined"}
                 size="small"
-                onClick={() => setFilter(f.value)}
                 sx={{
                   borderRadius: 100,
                   px: 2,
@@ -179,6 +190,8 @@ export function EventList({ events, showFilters = true }: EventListProps) {
                     "&:hover": { borderColor: tokens.navy },
                   }),
                 }}
+                variant={filter === f.value ? "contained" : "outlined"}
+                onClick={() => setFilter(f.value)}
               >
                 {f.label}
               </Button>
@@ -188,8 +201,6 @@ export function EventList({ events, showFilters = true }: EventListProps) {
           <Box
             component="input"
             placeholder="Search events…"
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             sx={{
               width: "100%",
               border: `1.5px solid ${tokens.border}`,
@@ -202,13 +213,15 @@ export function EventList({ events, showFilters = true }: EventListProps) {
               color: tokens.navy,
               "&:focus": { borderColor: tokens.orange },
             }}
+            value={search}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
           />
         </Box>
       )}
 
       {upcoming.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          {filter === "all" && <SectionDivider label="UPCOMING" count={upcoming.length} />}
+          {filter === "all" && <SectionDivider count={upcoming.length} label="UPCOMING" />}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {upcoming.map((event) => (
               <EventCard key={event._id} event={event} />
@@ -219,7 +232,7 @@ export function EventList({ events, showFilters = true }: EventListProps) {
 
       {past.length > 0 && (
         <Box>
-          {filter === "all" && <SectionDivider label="PAST EVENTS" count={past.length} />}
+          {filter === "all" && <SectionDivider count={past.length} label="PAST EVENTS" />}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {past.map((event) => (
               <EventCard key={event._id} event={event} />
@@ -242,7 +255,6 @@ function SectionDivider({ label, count }: { label: string; count: number }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2, mt: 3 }}>
       <Typography
-        variant="caption"
         sx={{
           fontFamily: '"Bebas Neue", sans-serif',
           fontSize: "0.875rem",
@@ -250,6 +262,7 @@ function SectionDivider({ label, count }: { label: string; count: number }) {
           color: tokens.muted,
           whiteSpace: "nowrap",
         }}
+        variant="caption"
       >
         {label}
       </Typography>

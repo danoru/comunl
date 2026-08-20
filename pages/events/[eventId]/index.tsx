@@ -21,6 +21,7 @@ import CommentSection from "../../../src/components/detail/CommentSection";
 import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
 import EventLocked from "../../../src/components/detail/EventLocked";
 import HostRecsWishlist from "../../../src/components/detail/HostRecsWishlist";
+import DatePollSection from "../../../src/components/detail/DatePollSection";
 
 import {
   getDietaryAlerts,
@@ -31,6 +32,8 @@ import {
   getComments,
   getTenant,
   getPhotos,
+  getDatePoll,
+  getDatePollVotes,
 } from "../../../src/lib/db";
 import { getSiteConfig, resolveAnonymousGuests } from "../../../src/models";
 import type {
@@ -38,6 +41,8 @@ import type {
   SerializedItem,
   SerializedGuest,
   SerializedComment,
+  SerializedDatePoll,
+  SerializedDatePollVote,
   ItemType,
 } from "../../../src/models";
 import { tokens } from "../../../src/styles/theme";
@@ -78,6 +83,8 @@ type EventDetailPageProps =
       allowAnonymous: boolean;
       showInvite: boolean;
       dietaryAlerts: string[];
+      datePoll: SerializedDatePoll | null;
+      datePollVotes: SerializedDatePollVote[];
     };
 
 export default function EventDetailPage(props: EventDetailPageProps) {
@@ -102,6 +109,8 @@ export default function EventDetailPage(props: EventDetailPageProps) {
     allowAnonymous,
     showInvite,
     dietaryAlerts,
+    datePoll,
+    datePollVotes,
   } = props;
   const [items, setItems] = useState<SerializedItem[]>(initialItems);
   const [guests, setGuests] = useState<SerializedGuest[]>(initialGuests);
@@ -109,10 +118,18 @@ export default function EventDetailPage(props: EventDetailPageProps) {
   const [total, setTotal] = useState(guestCount);
   const { data: session } = useSession();
   const isAdmin = (session as any)?.isAdmin ?? false;
+  const sessionUserId = ((session as any)?.userId as string | undefined) ?? null;
+  const canEditEvent =
+    isAdmin ||
+    (!!sessionUserId &&
+      (event.createdBy === sessionUserId ||
+        (event.hosts ?? []).includes(sessionUserId) ||
+        (event.hostUserIds ?? []).includes(sessionUserId)));
 
+  const isPolling = event.dateStatus === "polling" && !!datePoll && datePoll.status === "open";
   const eventDate = dayjs(event.date);
   const now = dayjs();
-  const isPast = eventDate.isBefore(now);
+  const isPast = !isPolling && eventDate.isBefore(now);
   const daysUntil = eventDate.diff(now, "day");
   const humanDate = eventDate.format("dddd, MMMM D, YYYY");
   const timeRange = eventDate.format("h:mm A");
@@ -267,15 +284,21 @@ export default function EventDetailPage(props: EventDetailPageProps) {
             gap: "14px 32px",
           }}
         >
-          <InfoCell icon="📅" label="Date" value={humanDate} />
-          <InfoCell icon="🕔" label="Time" value={timeRange} />
+          {isPolling ? (
+            <InfoCell icon="🗳️" label="Date" value="TBD — vote below" accent />
+          ) : (
+            <>
+              <InfoCell icon="📅" label="Date" value={humanDate} />
+              <InfoCell icon="🕔" label="Time" value={timeRange} />
+            </>
+          )}
           <InfoCell
             icon="📍"
             label="Location"
             value={event.location.replace("--", " / ")}
             href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
           />
-          {!isPast && (
+          {!isPast && !isPolling && (
             <InfoCell
               icon="⏰"
               label="Countdown"
@@ -314,7 +337,20 @@ export default function EventDetailPage(props: EventDetailPageProps) {
           </Box>
         )}
 
-        {!isPast && (
+        {isPolling && datePoll && (
+          <DatePollSection
+            eventId={event.id}
+            poll={datePoll}
+            initialVotes={datePollVotes}
+            allowAnonymous={allowAnonymous}
+            canLock={canEditEvent}
+            isSignedIn={!!session}
+            sessionName={session?.user?.name ?? null}
+            sessionUserId={sessionUserId}
+          />
+        )}
+
+        {!isPast && !isPolling && (
           <RSVPBar
             eventId={event.id}
             totalCount={total}
@@ -524,6 +560,12 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
     event.isGuestOnly ? Promise.resolve([]) : getDietaryAlerts(site.tenantId, eventId),
   ]);
 
+  const isPolling = event.dateStatus === "polling";
+  const [datePoll, datePollVotes] = await Promise.all([
+    isPolling ? getDatePoll(site.tenantId, eventId) : Promise.resolve(null),
+    isPolling ? getDatePollVotes(site.tenantId, eventId) : Promise.resolve([]),
+  ]);
+
   const tenantDefault = tenant?.allowAnonymousGuests ?? true;
   const allowAnonymous = resolveAnonymousGuests(event, tenantDefault);
 
@@ -539,6 +581,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req, quer
       allowAnonymous,
       showInvite: query?.invite === "true",
       dietaryAlerts,
+      datePoll,
+      datePollVotes,
     },
   };
 };
