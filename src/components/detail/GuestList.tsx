@@ -39,7 +39,7 @@ interface GuestListProps {
   totalCount: number;
 }
 
-export function GuestList({ guests, totalCount }: GuestListProps) {
+export function GuestList({ guests }: GuestListProps) {
   const [expandedGuest, setExpandedGuest] = useState<string | null>(null);
 
   if (guests.length === 0) {
@@ -180,7 +180,7 @@ export function RSVPBar({
   allowAnonymous,
   onRSVP,
 }: RSVPBarProps) {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const userId = (session as any)?.userId as string | undefined;
   const isSignedIn = !!userId;
   const userName = session?.user?.name ?? "";

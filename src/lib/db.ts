@@ -77,7 +77,7 @@ function parseMany<T>(schema: z.ZodType<T>, docs: unknown[]): T[] {
     const result = schema.safeParse(doc);
     if (!result.success) {
       console.warn("[db] Validation failed:", result.error.flatten());
-      console.warn("[db] Raw doc:", JSON.stringify(doc, null, 2)); // ← add this
+      console.warn("[db] Invalid doc _id:", (doc as { _id?: unknown })?._id);
       return [];
     }
     return [result.data];
