@@ -38,19 +38,19 @@ export default function OpenGraph(props: Props) {
 
   return (
     <Head>
-      <meta content={title} key="og:title" property="og:title" />
-      <meta content={description} key="og:description" property="og:description" />
-      <meta content={image} key="og:image" property="og:image" />
-      <meta content="1200" key="og:image:width" property="og:image:width" />
-      <meta content="630" key="og:image:height" property="og:image:height" />
-      <meta content={title} key="og:image:alt" property="og:image:alt" />
-      <meta content={url} key="og:url" property="og:url" />
-      <meta content={props.type ?? "website"} key="og:type" property="og:type" />
-      <meta content={site.name} key="og:site_name" property="og:site_name" />
-      <meta content="summary_large_image" key="twitter:card" name="twitter:card" />
-      <meta content={title} key="twitter:title" name="twitter:title" />
-      <meta content={description} key="twitter:description" name="twitter:description" />
-      <meta content={image} key="twitter:image" name="twitter:image" />
+      <meta key="og:title" content={title} property="og:title" />
+      <meta key="og:description" content={description} property="og:description" />
+      <meta key="og:image" content={image} property="og:image" />
+      <meta key="og:image:width" content="1200" property="og:image:width" />
+      <meta key="og:image:height" content="630" property="og:image:height" />
+      <meta key="og:image:alt" content={title} property="og:image:alt" />
+      <meta key="og:url" content={url} property="og:url" />
+      <meta key="og:type" content={props.type ?? "website"} property="og:type" />
+      <meta key="og:site_name" content={site.name} property="og:site_name" />
+      <meta key="twitter:card" content="summary_large_image" name="twitter:card" />
+      <meta key="twitter:title" content={title} name="twitter:title" />
+      <meta key="twitter:description" content={description} name="twitter:description" />
+      <meta key="twitter:image" content={image} name="twitter:image" />
     </Head>
   );
 }

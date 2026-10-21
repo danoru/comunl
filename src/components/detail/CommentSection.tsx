@@ -1,18 +1,16 @@
-import React, { useState } from "react";
-import { useSession } from "next-auth/react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import Collapse from "@mui/material/Collapse";
-
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { useSession } from "next-auth/react";
+import React, { useState } from "react";
 
 import type { SerializedComment } from "../../models";
 import { tokens } from "../../styles/theme";
@@ -105,13 +103,13 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
       {/* Comment list */}
       {comments.length === 0 ? (
         <Typography
-          variant="caption"
           sx={{
             fontStyle: "italic",
             color: tokens.mutedLight,
             display: "block",
             mb: 2,
           }}
+          variant="caption"
         >
           No comments yet — be the first!
         </Typography>
@@ -147,19 +145,19 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
                     <Typography sx={{ fontSize: "0.875rem", fontWeight: 600 }}>
                       {comment.displayName}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: tokens.mutedLight }}>
+                    <Typography sx={{ color: tokens.mutedLight }} variant="caption">
                       {dayjs(comment.createdAt).fromNow()}
                     </Typography>
                     {canDelete && (
                       <IconButton
                         size="small"
-                        onClick={() => handleDelete(comment._id)}
                         sx={{
                           ml: "auto",
                           p: 0.25,
                           color: tokens.mutedLight,
                           "&:hover": { color: "error.main" },
                         }}
+                        onClick={() => handleDelete(comment._id)}
                       >
                         <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
                       </IconButton>
@@ -188,12 +186,12 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
         {/* Anonymous name field */}
         {!userId && (
           <TextField
-            size="small"
+            fullWidth
             placeholder="Your name *"
+            size="small"
+            sx={{ mb: 1.5 }}
             value={anonName}
             onChange={(e) => setAnonName(e.target.value)}
-            fullWidth
-            sx={{ mb: 1.5 }}
           />
         )}
 
@@ -203,19 +201,19 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
             <Avatar src={userImage} sx={{ width: 24, height: 24, fontSize: "0.75rem" }}>
               {userName[0]?.toUpperCase()}
             </Avatar>
-            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+            <Typography sx={{ fontWeight: 600 }} variant="caption">
               {userName}
             </Typography>
           </Box>
         )}
 
         <TextField
+          fullWidth
+          multiline
+          minRows={2}
           placeholder="Leave a comment…"
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          multiline
-          minRows={2}
-          fullWidth
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit();
           }}
@@ -224,20 +222,20 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
         {/* Optional image URL */}
         <Collapse in={showImage}>
           <TextField
-            size="small"
-            placeholder="Imgur photo URL (optional) — e.g. https://i.imgur.com/abc.jpg"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
             fullWidth
             error={!!imageUrl && !imageValid}
             helperText={imageUrl && !imageValid ? "Must be an Imgur URL" : undefined}
+            placeholder="Imgur photo URL (optional) — e.g. https://i.imgur.com/abc.jpg"
+            size="small"
             sx={{ mt: 1.5 }}
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
           />
           {imageUrl && imageValid && (
             <Box
+              alt="Preview"
               component="img"
               src={imageUrl}
-              alt="Preview"
               sx={{
                 mt: 1,
                 maxHeight: 160,
@@ -250,7 +248,7 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
         </Collapse>
 
         {error && (
-          <Typography variant="caption" color="error" sx={{ display: "block", mt: 1 }}>
+          <Typography color="error" sx={{ display: "block", mt: 1 }} variant="caption">
             {error}
           </Typography>
         )}
@@ -265,19 +263,19 @@ export default function CommentSection({ eventId, initialComments }: CommentSect
         >
           <IconButton
             size="small"
-            onClick={() => setShowImage((v) => !v)}
             sx={{ color: showImage ? tokens.orange : tokens.muted }}
             title="Add photo"
+            onClick={() => setShowImage((v) => !v)}
           >
             <ImageRoundedIcon fontSize="small" />
           </IconButton>
 
           <Button
-            variant="contained"
-            size="small"
-            onClick={handleSubmit}
             disabled={submitting || !body.trim() || (!userId && !anonName.trim())}
+            size="small"
             sx={{ borderRadius: 100, px: 2.5 }}
+            variant="contained"
+            onClick={handleSubmit}
           >
             {submitting ? "Posting…" : "Post"}
           </Button>

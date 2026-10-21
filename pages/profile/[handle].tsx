@@ -80,21 +80,21 @@ export default function PublicProfilePage({
             {profile.name[0]?.toUpperCase()}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h2" sx={{ fontSize: "clamp(28px, 6vw, 40px)", lineHeight: 1 }}>
+            <Typography sx={{ fontSize: "clamp(28px, 6vw, 40px)", lineHeight: 1 }} variant="h2">
               {profile.name}
             </Typography>
-            <Typography variant="body2" sx={{ mt: 0.5 }}>
+            <Typography sx={{ mt: 0.5 }} variant="body2">
               @{profile.handle}
               {location ? ` · ${location}` : ""}
             </Typography>
           </Box>
           {!profile.isSelf && (
             <Button
-              variant={followState.following ? "outlined" : "contained"}
-              size="small"
-              onClick={toggleFollow}
               disabled={busy}
+              size="small"
               sx={{ flexShrink: 0, ml: "auto" }}
+              variant={followState.following ? "outlined" : "contained"}
+              onClick={toggleFollow}
             >
               {followLabel}
             </Button>
@@ -128,7 +128,7 @@ export default function PublicProfilePage({
           <>
             {rallies.length > 0 && (
               <>
-                <SectionLabel label="OPEN RALLIES" count={rallies.length} />
+                <SectionLabel count={rallies.length} label="OPEN RALLIES" />
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mb: 3 }}>
                   {rallies.map((rally) => (
                     <Box
@@ -157,7 +157,7 @@ export default function PublicProfilePage({
 
             {hosting.length > 0 && (
               <>
-                <SectionLabel label="HOSTING" count={hosting.length} />
+                <SectionLabel count={hosting.length} label="HOSTING" />
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                   {hosting.map((event) => (
                     <EventCard key={event._id} event={event} />
@@ -167,7 +167,7 @@ export default function PublicProfilePage({
             )}
 
             {rallies.length === 0 && hosting.length === 0 && (
-              <Typography variant="body2" sx={{ color: tokens.muted, py: 4, textAlign: "center" }}>
+              <Typography sx={{ color: tokens.muted, py: 4, textAlign: "center" }} variant="body2">
                 Nothing public here yet.
               </Typography>
             )}
@@ -182,7 +182,6 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
   return (
     <Box sx={{ alignItems: "center", display: "flex", gap: 1.25, mb: 1.5, mt: 1 }}>
       <Typography
-        variant="caption"
         sx={{
           fontFamily: '"Bebas Neue", sans-serif',
           fontSize: "0.875rem",
@@ -190,6 +189,7 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
           color: tokens.muted,
           whiteSpace: "nowrap",
         }}
+        variant="caption"
       >
         {label}
       </Typography>

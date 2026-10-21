@@ -1,14 +1,12 @@
 // Uses the Web Share API on mobile (native share sheet)
 // Falls back to clipboard copy on desktop
 
-import React, { useState } from "react";
-
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import Tooltip from "@mui/material/Tooltip";
-
-import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import React, { useState } from "react";
 
 import { tokens } from "../../styles/theme";
 
@@ -55,9 +53,7 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
     <>
       <Tooltip title={copied ? "Copied!" : "Share event"}>
         <Button
-          variant="outlined"
           size="small"
-          onClick={handleShare}
           startIcon={
             copied ? (
               <CheckRoundedIcon sx={{ fontSize: "1rem !important" }} />
@@ -83,17 +79,18 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
               background: tokens.orangeGlow,
             },
           }}
+          variant="outlined"
+          onClick={handleShare}
         >
           {copied ? "Copied!" : "Share"}
         </Button>
       </Tooltip>
 
       <Snackbar
-        open={snackbar}
-        onClose={() => setSnackbar(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         autoHideDuration={2500}
         message="Link copied to clipboard"
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        open={snackbar}
         sx={{
           "& .MuiSnackbarContent-root": {
             borderRadius: "12px",
@@ -102,6 +99,7 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
             fontWeight: 500,
           },
         }}
+        onClose={() => setSnackbar(false)}
       />
     </>
   );

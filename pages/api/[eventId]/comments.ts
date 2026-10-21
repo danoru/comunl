@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { z } from "zod";
+
 import { getComments, addComment, deleteComment } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
+import { authOptions } from "../auth/[...nextauth]";
 
 const IMGUR_RE = /^https?:\/\/(i\.)?imgur\.com\/.+/i;
 

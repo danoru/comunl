@@ -1,16 +1,14 @@
-import React, { useState } from "react";
-import { useSession } from "next-auth/react";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
-import Collapse from "@mui/material/Collapse";
-
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Collapse from "@mui/material/Collapse";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { useSession } from "next-auth/react";
+import React, { useState } from "react";
 
 import type { ItemType, SerializedItem } from "../../models";
 import { resolveItemAttribution } from "../../models";
@@ -107,7 +105,6 @@ export default function FoodSection({
         </Typography>
         <IconButton
           size="small"
-          onClick={() => setAdding((a) => !a)}
           sx={{
             width: 26,
             height: 26,
@@ -115,6 +112,7 @@ export default function FoodSection({
             color: adding ? tokens.muted : tokens.orange,
             "&:hover": { background: tokens.orangeGlow },
           }}
+          onClick={() => setAdding((a) => !a)}
         >
           {adding ? <CloseIcon sx={{ fontSize: 14 }} /> : <AddIcon sx={{ fontSize: 14 }} />}
         </IconButton>
@@ -136,7 +134,7 @@ export default function FoodSection({
             >
               <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>{item.item}</Typography>
               {who && (
-                <Typography variant="caption" sx={{ color: tokens.muted, flexShrink: 0, ml: 1 }}>
+                <Typography sx={{ color: tokens.muted, flexShrink: 0, ml: 1 }} variant="caption">
                   {who}
                 </Typography>
               )}
@@ -147,8 +145,8 @@ export default function FoodSection({
 
       {categoryItems.length === 0 && !adding && (
         <Typography
-          variant="caption"
           sx={{ fontStyle: "italic", color: tokens.mutedLight, mt: 0.5 }}
+          variant="caption"
         >
           Nothing yet — add something!
         </Typography>
@@ -158,25 +156,25 @@ export default function FoodSection({
       <Collapse in={adding}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1.5 }}>
           <TextField
-            size="small"
+            autoFocus
+            fullWidth
             placeholder={meta.placeholder}
+            size="small"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            autoFocus
-            fullWidth
           />
           {error && (
-            <Typography variant="caption" color="error">
+            <Typography color="error" variant="caption">
               {error}
             </Typography>
           )}
           <Button
-            variant="contained"
-            size="small"
-            onClick={handleSubmit}
             disabled={loading || !value.trim()}
+            size="small"
             sx={{ alignSelf: "flex-start", borderRadius: 100, px: 2 }}
+            variant="contained"
+            onClick={handleSubmit}
           >
             {loading ? "Saving…" : "Add"}
           </Button>

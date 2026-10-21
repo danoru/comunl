@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { requireApiSession, requireEventEditor } from "../../../../src/lib/auth";
 import { deleteItem, getEvent, getItem, getUser, updateItem } from "../../../../src/lib/db";
 import { getSiteConfig } from "../../../../src/models";

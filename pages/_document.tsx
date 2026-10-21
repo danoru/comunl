@@ -10,7 +10,7 @@ export default class MyDocument extends Document {
       <Html lang="en">
         <Head>
           {/* Google Fonts */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link href="https://fonts.googleapis.com" rel="preconnect" />
           <link crossOrigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect" />
           <link
             href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Playfair+Display:ital@1&display=swap"

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { z } from "zod";
+
 import {
   getGuests,
   addGuest,
@@ -11,6 +11,7 @@ import {
   getTenant,
 } from "../../../src/lib/db";
 import { getSiteConfig, resolveAnonymousGuests } from "../../../src/models";
+import { authOptions } from "../auth/[...nextauth]";
 
 const CreateRSVPSchema = z.object({
   displayName: z.string().min(1, "Name is required").max(100),

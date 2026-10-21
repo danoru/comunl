@@ -1,10 +1,9 @@
-import React from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import Head from "next/head";
 import Link from "next/link";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import React from "react";
 
 import { tokens } from "../src/styles/theme";
 
@@ -30,18 +29,17 @@ export default function NotFoundPage() {
         <Typography sx={{ fontSize: "5rem", lineHeight: 1, mb: 1 }}>🎈</Typography>
 
         <Typography
-          variant="h1"
           sx={{
             fontSize: "clamp(64px, 15vw, 120px)",
             color: tokens.navy,
             lineHeight: 1,
           }}
+          variant="h1"
         >
           404
         </Typography>
 
         <Typography
-          variant="h3"
           sx={{
             fontSize: "1.5rem",
             color: tokens.muted,
@@ -49,11 +47,12 @@ export default function NotFoundPage() {
             fontStyle: "italic",
             fontWeight: 400,
           }}
+          variant="h3"
         >
           This party doesn't exist.
         </Typography>
 
-        <Typography variant="body2" sx={{ maxWidth: 340, color: tokens.muted, mt: 0.5 }}>
+        <Typography sx={{ maxWidth: 340, color: tokens.muted, mt: 0.5 }} variant="body2">
           The event you're looking for may have been removed, or the link might be wrong.
         </Typography>
 

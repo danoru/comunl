@@ -1,15 +1,13 @@
 // Shown when an event is private and the visitor hasn't entered the invite code yet.
 
-import React, { useState } from "react";
-import { useRouter } from "next/router";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
-
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { useRouter } from "next/router";
+import React, { useState } from "react";
 
 import { tokens } from "../../styles/theme";
 
@@ -78,7 +76,7 @@ export default function EventLocked({ eventId, eventTitle }: EventLockedProps) {
         <LockRoundedIcon sx={{ fontSize: 32, color: tokens.muted }} />
       </Box>
 
-      <Typography variant="h2" sx={{ fontSize: "clamp(24px, 6vw, 36px)" }}>
+      <Typography sx={{ fontSize: "clamp(24px, 6vw, 36px)" }} variant="h2">
         {eventTitle}
       </Typography>
 
@@ -104,10 +102,8 @@ export default function EventLocked({ eventId, eventTitle }: EventLockedProps) {
         }}
       >
         <TextField
-          placeholder="Enter invite code"
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          autoFocus
+          fullWidth
           inputProps={{
             style: {
               textAlign: "center",
@@ -117,8 +113,10 @@ export default function EventLocked({ eventId, eventTitle }: EventLockedProps) {
               textTransform: "uppercase",
             },
           }}
-          autoFocus
-          fullWidth
+          placeholder="Enter invite code"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
 
         {error && (
@@ -128,17 +126,17 @@ export default function EventLocked({ eventId, eventTitle }: EventLockedProps) {
         )}
 
         <Button
-          variant="contained"
-          size="large"
-          onClick={handleSubmit}
-          disabled={loading || !code.trim()}
           fullWidth
+          disabled={loading || !code.trim()}
+          size="large"
+          variant="contained"
+          onClick={handleSubmit}
         >
           {loading ? "Checking…" : "Unlock Event →"}
         </Button>
       </Box>
 
-      <Typography variant="caption" sx={{ color: tokens.mutedLight, mt: 1 }}>
+      <Typography sx={{ color: tokens.mutedLight, mt: 1 }} variant="caption">
         Ask the host for the invite code.
       </Typography>
     </Box>

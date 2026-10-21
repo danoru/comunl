@@ -1,7 +1,7 @@
+import { serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { serialize } from "cookie";
-import { authOptions } from "../../auth/[...nextauth]";
+
 import {
   getEvent,
   getTenant,
@@ -12,6 +12,7 @@ import {
 import { generateInviteCode } from "../../../../src/lib/nanoid";
 import { notifyPollVote } from "../../../../src/lib/notify";
 import { getSiteConfig, resolveAnonymousGuests, CastVoteSchema } from "../../../../src/models";
+import { authOptions } from "../../auth/[...nextauth]";
 
 const PARTICIPANT_COOKIE = "poll_participant";
 

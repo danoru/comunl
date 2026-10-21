@@ -1,3 +1,7 @@
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import {
   Alert,
   Box,
@@ -17,16 +21,13 @@ import {
   Typography,
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import React from "react";
+import dayjs, { Dayjs } from "dayjs";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import type { GetServerSideProps } from "next";
-import dayjs, { Dayjs } from "dayjs";
 import { useSession } from "next-auth/react";
+import React from "react";
+
 import CoHostPicker, { type HostUser } from "../../../src/components/events/CoHostPicker";
 import { adminGuard, getSession } from "../../../src/lib/auth";
 import { getEvent, getGuests, getItems } from "../../../src/lib/db";
@@ -194,7 +195,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         >
           <Box>
             <Typography
-              variant="caption"
               sx={{
                 fontFamily: '"Bebas Neue", sans-serif',
                 letterSpacing: "0.25em",
@@ -202,26 +202,27 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                 display: "block",
                 mb: 0.5,
               }}
+              variant="caption"
             >
               ADMIN
             </Typography>
-            <Typography variant="h1" sx={{ fontSize: "clamp(28px, 7vw, 44px)", lineHeight: 1 }}>
+            <Typography sx={{ fontSize: "clamp(28px, 7vw, 44px)", lineHeight: 1 }} variant="h1">
               {event.title}
             </Typography>
           </Box>
 
           <Button
-            href={`/events/${event.id}`}
             component="a"
-            variant="outlined"
-            size="small"
             endIcon={<OpenInNewRoundedIcon />}
+            href={`/events/${event.id}`}
+            size="small"
             sx={{
               borderRadius: 100,
               borderColor: tokens.border,
               color: tokens.muted,
               "&:hover": { borderColor: tokens.navy, color: tokens.navy },
             }}
+            variant="outlined"
           >
             View Event
           </Button>
@@ -256,10 +257,10 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
           {event.isPrivate && event.inviteCode && (
             <CopyableField
-              label="Invite code"
-              value={event.inviteCode}
               mono
               helperText="Guests need this code to unlock the event."
+              label="Invite code"
+              value={event.inviteCode}
             />
           )}
         </Box>
@@ -268,38 +269,38 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
           <TextField
+            fullWidth
             label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            fullWidth
           />
           <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             fullWidth
             multiline
+            label="Description"
             minRows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
           <TextField
+            fullWidth
             label="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            fullWidth
           />
           <DateTimePicker
             label="Date & time"
+            slotProps={{ textField: { fullWidth: true } }}
             value={date}
             onChange={setDate}
-            slotProps={{ textField: { fullWidth: true } }}
           />
           <TextField
+            fullWidth
+            error={!!flyer && !flyerValid}
+            helperText="Imgur direct link — e.g. https://i.imgur.com/abc123.png"
             label="Flyer URL"
             value={flyer}
             onChange={(e) => setFlyer(e.target.value)}
-            fullWidth
-            helperText="Imgur direct link — e.g. https://i.imgur.com/abc123.png"
-            error={!!flyer && !flyerValid}
           />
 
           {flyerValid && (
@@ -312,20 +313,20 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
               }}
             >
               <Box
+                alt="Flyer preview"
                 component="img"
                 src={flyer}
-                alt="Flyer preview"
                 sx={{ width: "100%", objectFit: "cover", display: "block" }}
               />
             </Box>
           )}
 
           <TextField
+            fullWidth
+            helperText="Leave blank to use flyer as thumbnail"
             label="Thumbnail URL (optional)"
             value={image}
             onChange={(e) => setImage(e.target.value)}
-            fullWidth
-            helperText="Leave blank to use flyer as thumbnail"
           />
         </Box>
 
@@ -348,7 +349,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                 control={
                   <Switch
                     checked={isFeatured}
-                    onChange={(e) => setIsFeatured(e.target.checked)}
                     sx={{
                       "& .MuiSwitch-switchBase.Mui-checked": {
                         color: tokens.orange,
@@ -357,6 +357,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                         backgroundColor: tokens.orange,
                       },
                     }}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
                   />
                 }
                 label={
@@ -376,7 +377,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
             control={
               <Switch
                 checked={isGuestOnly}
-                onChange={(e) => setIsGuestOnly(e.target.checked)}
                 sx={{
                   "& .MuiSwitch-switchBase.Mui-checked": {
                     color: tokens.orange,
@@ -385,6 +385,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                     backgroundColor: tokens.orange,
                   },
                 }}
+                onChange={(e) => setIsGuestOnly(e.target.checked)}
               />
             }
             label={
@@ -400,12 +401,12 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         </Box>
 
         <Button
-          variant="contained"
-          size="large"
-          onClick={handleSave}
-          disabled={saving}
           fullWidth
+          disabled={saving}
+          size="large"
           sx={{ mb: 4 }}
+          variant="contained"
+          onClick={handleSave}
         >
           {saving ? "Saving…" : "Save Changes"}
         </Button>
@@ -413,14 +414,14 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
         <Divider sx={{ my: 3 }} />
         <SectionLabel>Co-Hosts</SectionLabel>
 
-        <CoHostPicker value={hosts} disabled={!canManageHosts} onChange={setHosts} />
+        <CoHostPicker disabled={!canManageHosts} value={hosts} onChange={setHosts} />
 
         <Divider sx={{ my: 3 }} />
 
         <SectionLabel>Host Recommendations</SectionLabel>
         <Typography
-          variant="caption"
           sx={{ color: tokens.muted, mt: -1, mb: 1.5, display: "block" }}
+          variant="caption"
         >
           Things you'd like guests to bring. They'll see a "still needed" list and can claim items
           from the event page.
@@ -428,7 +429,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
           {hostRecs.length === 0 && (
-            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
+            <Typography sx={{ color: tokens.muted, fontStyle: "italic" }} variant="caption">
               No recommendations yet
             </Typography>
           )}
@@ -452,12 +453,12 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                     rec.item
                   )
                 }
-                onDelete={() => handleRemoveItem(rec._id)}
                 sx={{
                   background: claimed ? tokens.greenBg : "#fff",
                   border: `1.5px solid ${claimed ? "rgba(6, 214, 160, 0.35)" : tokens.border}`,
                   fontWeight: 500,
                 }}
+                onDelete={() => handleRemoveItem(rec._id)}
               />
             );
           })}
@@ -465,20 +466,20 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
-            size="small"
             placeholder="e.g. Beer, Ice, Lime…"
+            size="small"
+            sx={{ flex: 1 }}
             value={newRec}
             onChange={(e) => setNewRec(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddRec()}
-            sx={{ flex: 1 }}
           />
           <Button
-            variant="contained"
-            size="small"
-            onClick={handleAddRec}
             disabled={addingRec || !newRec.trim()}
+            size="small"
             startIcon={<AddRoundedIcon />}
             sx={{ borderRadius: 100, px: 2 }}
+            variant="contained"
+            onClick={handleAddRec}
           >
             Add
           </Button>
@@ -490,7 +491,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 4 }}>
           {guests.length === 0 && (
-            <Typography variant="caption" sx={{ color: tokens.muted, fontStyle: "italic" }}>
+            <Typography sx={{ color: tokens.muted, fontStyle: "italic" }} variant="caption">
               No guests yet
             </Typography>
           )}
@@ -498,12 +499,12 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
             <Chip
               key={guest._id}
               label={guest.displayName}
-              onDelete={() => handleRemoveGuest(guest._id)}
               sx={{
                 background: "#fff",
                 border: `1.5px solid ${tokens.border}`,
                 fontWeight: 500,
               }}
+              onDelete={() => handleRemoveGuest(guest._id)}
             />
           ))}
         </Box>
@@ -514,7 +515,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           return (
             <Box key={cat} sx={{ mb: 2 }}>
               <Typography
-                variant="caption"
                 sx={{
                   fontFamily: '"Bebas Neue", sans-serif',
                   letterSpacing: "0.15em",
@@ -522,6 +522,7 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                   display: "block",
                   mb: 1,
                 }}
+                variant="caption"
               >
                 {cat.toUpperCase()}
               </Typography>
@@ -530,12 +531,12 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
                   <Chip
                     key={item._id}
                     label={item.submittedBy ? `${item.item} (${item.submittedBy})` : item.item}
-                    onDelete={() => handleRemoveItem(item._id)}
                     sx={{
                       background: "#fff",
                       border: `1.5px solid ${tokens.border}`,
                       fontWeight: 500,
                     }}
+                    onDelete={() => handleRemoveItem(item._id)}
                   />
                 ))}
               </Box>
@@ -556,15 +557,15 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           }}
         >
           <Typography sx={{ fontWeight: 600, mb: 0.5 }}>Delete this event</Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
+          <Typography sx={{ mb: 2 }} variant="body2">
             The event will be hidden from all pages. Guest and food history is preserved.
           </Typography>
           <Button
-            variant="outlined"
             color="error"
-            onClick={() => setDeleteOpen(true)}
             startIcon={<DeleteOutlineRoundedIcon />}
             sx={{ borderRadius: 100 }}
+            variant="outlined"
+            onClick={() => setDeleteOpen(true)}
           >
             Delete Event
           </Button>
@@ -573,8 +574,8 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 
       <Dialog
         open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
         PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+        onClose={() => setDeleteOpen(false)}
       >
         <DialogTitle sx={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: "1.5rem" }}>
           Delete "{event.title}"?
@@ -585,22 +586,22 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
           </Typography>
           <TextField
             fullWidth
-            size="small"
             placeholder={event.title}
+            size="small"
             value={deleteConfirm}
             onChange={(e) => setDeleteConfirm(e.target.value)}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setDeleteOpen(false)} sx={{ borderRadius: 100 }}>
+          <Button sx={{ borderRadius: 100 }} onClick={() => setDeleteOpen(false)}>
             Cancel
           </Button>
           <Button
-            variant="contained"
             color="error"
             disabled={deleteConfirm !== event.title || deleting}
-            onClick={handleDelete}
             sx={{ borderRadius: 100 }}
+            variant="contained"
+            onClick={handleDelete}
           >
             {deleting ? "Deleting…" : "Delete Forever"}
           </Button>
@@ -613,7 +614,6 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <Typography
-      variant="caption"
       sx={{
         fontFamily: '"Bebas Neue", sans-serif',
         fontSize: "0.8125rem",
@@ -622,6 +622,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         display: "block",
         mb: 1.5,
       }}
+      variant="caption"
     >
       {children}
     </Typography>
@@ -655,7 +656,6 @@ function CopyableField({
   return (
     <Box>
       <Typography
-        variant="caption"
         sx={{
           fontWeight: 700,
           letterSpacing: "0.04em",
@@ -664,12 +664,11 @@ function CopyableField({
           display: "block",
           mb: 0.75,
         }}
+        variant="caption"
       >
         {label}
       </Typography>
       <TextField
-        size="small"
-        value={value}
         fullWidth
         InputProps={{
           readOnly: true,
@@ -678,9 +677,9 @@ function CopyableField({
             : undefined,
           endAdornment: (
             <InputAdornment position="end">
-              <Tooltip title={copied ? "Copied!" : "Copy"} placement="top" arrow>
+              <Tooltip arrow placement="top" title={copied ? "Copied!" : "Copy"}>
                 <span>
-                  <IconButton size="small" onClick={copy} disabled={!value}>
+                  <IconButton disabled={!value} size="small" onClick={copy}>
                     <ContentCopyRoundedIcon fontSize="small" />
                   </IconButton>
                 </span>
@@ -688,9 +687,11 @@ function CopyableField({
             </InputAdornment>
           ),
         }}
+        size="small"
+        value={value}
       />
       {helperText && (
-        <Typography variant="caption" sx={{ color: tokens.muted, mt: 0.5, display: "block" }}>
+        <Typography sx={{ color: tokens.muted, mt: 0.5, display: "block" }} variant="caption">
           {helperText}
         </Typography>
       )}

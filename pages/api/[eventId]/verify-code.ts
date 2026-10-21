@@ -2,8 +2,9 @@
 // Validates an invite code and sets a signed cookie so the user
 // can view the private event without re-entering the code.
 
-import type { NextApiRequest, NextApiResponse } from "next";
 import { serialize } from "cookie";
+import type { NextApiRequest, NextApiResponse } from "next";
+
 import { getEvent } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 

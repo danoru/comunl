@@ -1,6 +1,7 @@
-import { MongoClient } from "mongodb";
-import * as dotenv from "dotenv";
 import * as path from "path";
+
+import * as dotenv from "dotenv";
+import { MongoClient } from "mongodb";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 

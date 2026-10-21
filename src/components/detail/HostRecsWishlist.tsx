@@ -2,16 +2,14 @@
 // Splits into "Still needed" (unclaimed, clickable) and "Got it covered"
 // (claimed, with attribution). Anonymous viewers are nudged to sign in.
 
-import React, { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
-import Tooltip from "@mui/material/Tooltip";
-
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+import { signIn, useSession } from "next-auth/react";
+import React, { useState } from "react";
 
 import type { SerializedItem } from "../../models";
 import { tokens } from "../../styles/theme";
@@ -70,14 +68,13 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
 
   return (
     <Box>
-      <Typography variant="caption" sx={{ color: tokens.muted, display: "block", mb: 2, mt: -1 }}>
+      <Typography sx={{ color: tokens.muted, display: "block", mb: 2, mt: -1 }} variant="caption">
         Things the host would love someone to bring.
       </Typography>
 
       {needed.length > 0 && (
         <Box sx={{ mb: claimed.length > 0 ? 2.5 : 0 }}>
           <Typography
-            variant="caption"
             sx={{
               fontWeight: 700,
               letterSpacing: "0.04em",
@@ -86,6 +83,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
               display: "block",
               mb: 1,
             }}
+            variant="caption"
           >
             Still needed ({needed.length})
           </Typography>
@@ -100,14 +98,13 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
               return (
                 <Tooltip
                   key={rec._id}
-                  title={userId ? "Tap to claim" : "Sign in to claim this"}
                   arrow
                   placement="top"
+                  title={userId ? "Tap to claim" : "Sign in to claim this"}
                 >
                   <Chip
-                    label={label}
-                    onClick={() => !busy && handleClaim(rec._id)}
                     disabled={busy}
+                    label={label}
                     sx={{
                       background: tokens.orangeGlow,
                       border: `1.5px solid ${tokens.orange}`,
@@ -126,6 +123,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
                           },
                       transition: "transform 0.15s, background 0.15s",
                     }}
+                    onClick={() => !busy && handleClaim(rec._id)}
                   />
                 </Tooltip>
               );
@@ -137,7 +135,6 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
       {claimed.length > 0 && (
         <Box>
           <Typography
-            variant="caption"
             sx={{
               fontWeight: 700,
               letterSpacing: "0.04em",
@@ -146,6 +143,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
               display: "block",
               mb: 1,
             }}
+            variant="caption"
           >
             Got it covered ({claimed.length})
           </Typography>
@@ -157,6 +155,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
               return (
                 <Chip
                   key={rec._id}
+                  deleteIcon={<CloseRoundedIcon sx={{ fontSize: 16 }} />}
                   icon={<CheckRoundedIcon sx={{ fontSize: 16 }} />}
                   label={
                     <Box component="span">
@@ -168,8 +167,6 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
                       </Box>
                     </Box>
                   }
-                  onDelete={mine && !busy ? () => patch(rec._id, "unclaim") : undefined}
-                  deleteIcon={<CloseRoundedIcon sx={{ fontSize: 16 }} />}
                   sx={{
                     background: tokens.greenBg,
                     border: `1.5px solid rgba(6, 214, 160, 0.35)`,
@@ -180,6 +177,7 @@ export default function HostRecsWishlist({ eventId, items, onChange }: HostRecsW
                     px: 0.5,
                     "& .MuiChip-icon": { color: tokens.green },
                   }}
+                  onDelete={mine && !busy ? () => patch(rec._id, "unclaim") : undefined}
                 />
               );
             })}

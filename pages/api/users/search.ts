@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+
 import { getDb } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
+import { authOptions } from "../auth/[...nextauth]";
 
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/g;
 function escapeRegex(s: string): string {

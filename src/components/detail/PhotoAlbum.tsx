@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
-import IconButton from "@mui/material/IconButton";
 import Avatar from "@mui/material/Avatar";
-import { tokens } from "../../styles/theme";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Modal from "@mui/material/Modal";
+import Typography from "@mui/material/Typography";
+import React, { useState } from "react";
+
 import type { SerializedComment } from "../../models";
+import { tokens } from "../../styles/theme";
 
 interface PhotoAlbumProps {
   comments: SerializedComment[];
@@ -29,7 +30,6 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
         {photos.map((comment) => (
           <Box
             key={comment._id}
-            onClick={() => setSelected(comment)}
             sx={{
               position: "relative",
               aspectRatio: "1 / 1",
@@ -41,11 +41,12 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
               "&:hover .overlay": { opacity: 1 },
               "&:hover img": { transform: "scale(1.06)" },
             }}
+            onClick={() => setSelected(comment)}
           >
             <Box
+              alt={`Photo by ${comment.displayName}`}
               component="img"
               src={comment.imageUrl!}
-              alt={`Photo by ${comment.displayName}`}
               sx={{
                 width: "100%",
                 height: "100%",
@@ -68,8 +69,8 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
               }}
             >
               <Avatar
-                src={comment.userImage ?? undefined}
                 alt={comment.displayName}
+                src={comment.userImage ?? undefined}
                 sx={{ width: 22, height: 22, fontSize: "0.65rem", mr: 0.75 }}
               />
               <Typography
@@ -93,8 +94,8 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
       {/* Lightbox */}
       <Modal
         open={!!selected}
-        onClose={() => setSelected(null)}
         sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+        onClose={() => setSelected(null)}
       >
         <Box
           sx={{
@@ -116,9 +117,9 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
               }}
             >
               <Box
+                alt={`Photo by ${selected.displayName}`}
                 component="img"
                 src={selected.imageUrl!}
-                alt={`Photo by ${selected.displayName}`}
                 sx={{
                   width: "100%",
                   maxHeight: "65vh",
@@ -136,8 +137,8 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
                 }}
               >
                 <Avatar
-                  src={selected.userImage ?? undefined}
                   alt={selected.displayName}
+                  src={selected.userImage ?? undefined}
                   sx={{ width: 32, height: 32 }}
                 />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -151,10 +152,10 @@ export default function PhotoAlbum({ comments }: PhotoAlbumProps) {
                   )}
                 </Box>
                 <IconButton
-                  size="small"
-                  onClick={() => setSelected(null)}
-                  sx={{ color: tokens.muted, flexShrink: 0 }}
                   aria-label="Close"
+                  size="small"
+                  sx={{ color: tokens.muted, flexShrink: 0 }}
+                  onClick={() => setSelected(null)}
                 >
                   ✕
                 </IconButton>

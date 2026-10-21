@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from "react";
+import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import { Chip } from "@mui/material";
+import Alert from "@mui/material/Alert";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Skeleton from "@mui/material/Skeleton";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import dayjs from "dayjs";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import type { GetServerSideProps } from "next";
-import dayjs from "dayjs";
+import React, { useState, useEffect } from "react";
 
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Avatar from "@mui/material/Avatar";
-import Alert from "@mui/material/Alert";
-import Divider from "@mui/material/Divider";
-import Skeleton from "@mui/material/Skeleton";
-
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
-
-import { tokens } from "../../src/styles/theme";
 import type { SerializedUser, SerializedGuest } from "../../src/models";
-import { Chip } from "@mui/material";
+import { tokens } from "../../src/styles/theme";
+
 import { DIETARY_OPTIONS } from "@/lib/dietary";
 
 // ─── Profile fields config ────────────────────────────────────────────────────
@@ -113,13 +112,13 @@ export default function ProfilePage() {
           }}
         >
           <Typography sx={{ fontSize: "3rem" }}>👤</Typography>
-          <Typography variant="h2" sx={{ fontSize: "clamp(28px, 6vw, 40px)" }}>
+          <Typography sx={{ fontSize: "clamp(28px, 6vw, 40px)" }} variant="h2">
             Your Profile
           </Typography>
           <Typography sx={{ color: tokens.muted, maxWidth: 320 }}>
             Sign in to manage your profile, track your RSVPs, and more.
           </Typography>
-          <Button variant="contained" size="large" onClick={() => signIn("google")}>
+          <Button size="large" variant="contained" onClick={() => signIn("google")}>
             Sign in with Google
           </Button>
         </Box>
@@ -146,24 +145,24 @@ export default function ProfilePage() {
             {userName[0]?.toUpperCase()}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h2" sx={{ fontSize: "clamp(24px, 6vw, 36px)", lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: "clamp(24px, 6vw, 36px)", lineHeight: 1.1 }} variant="h2">
               {loading ? <Skeleton width={200} /> : userName}
             </Typography>
-            <Typography variant="caption" sx={{ color: tokens.muted }}>
+            <Typography sx={{ color: tokens.muted }} variant="caption">
               {session?.user?.email}
             </Typography>
           </Box>
           <Button
-            variant="outlined"
             size="small"
             startIcon={<LogoutRoundedIcon />}
-            onClick={() => signOut({ callbackUrl: "/" })}
             sx={{
               borderRadius: 100,
               borderColor: tokens.border,
               color: tokens.muted,
               flexShrink: 0,
             }}
+            variant="outlined"
+            onClick={() => signOut({ callbackUrl: "/" })}
           >
             Sign out
           </Button>
@@ -185,8 +184,8 @@ export default function ProfilePage() {
             <Button
               size="small"
               startIcon={<EditRoundedIcon />}
-              onClick={() => setEditing(true)}
               sx={{ borderRadius: 100, color: tokens.muted, fontSize: "0.8125rem" }}
+              onClick={() => setEditing(true)}
             >
               Edit
             </Button>
@@ -207,7 +206,6 @@ export default function ProfilePage() {
               {i > 0 && <Divider />}
               <Box sx={{ px: 2.5, py: 1.75 }}>
                 <Typography
-                  variant="caption"
                   sx={{
                     fontWeight: 700,
                     letterSpacing: "0.04em",
@@ -216,22 +214,23 @@ export default function ProfilePage() {
                     display: "block",
                     mb: 0.5,
                   }}
+                  variant="caption"
                 >
                   {field.label}
                 </Typography>
                 {editing ? (
                   <TextField
-                    size="small"
-                    value={(form as any)[field.key] ?? ""}
-                    onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                    placeholder={field.placeholder}
-                    type={field.type ?? "text"}
                     fullWidth
-                    variant="standard"
                     InputProps={{ disableUnderline: false }}
+                    placeholder={field.placeholder}
+                    size="small"
+                    type={field.type ?? "text"}
+                    value={(form as any)[field.key] ?? ""}
+                    variant="standard"
+                    onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
                   />
                 ) : loading ? (
-                  <Skeleton width={160} height={20} />
+                  <Skeleton height={20} width={160} />
                 ) : (
                   <Typography
                     sx={{
@@ -263,6 +262,14 @@ export default function ProfilePage() {
                     <Chip
                       key={opt}
                       label={opt}
+                      sx={{
+                        cursor: "pointer",
+                        background: selected ? tokens.orangeGlow : "#fff",
+                        border: `1.5px solid ${selected ? tokens.orange : tokens.border}`,
+                        color: selected ? tokens.orange : tokens.navy,
+                        fontWeight: selected ? 600 : 400,
+                        "&:hover": { borderColor: tokens.orange },
+                      }}
                       onClick={() =>
                         setForm((prev) => {
                           const current = prev.dietaryPreferences ?? [];
@@ -274,14 +281,6 @@ export default function ProfilePage() {
                           };
                         })
                       }
-                      sx={{
-                        cursor: "pointer",
-                        background: selected ? tokens.orangeGlow : "#fff",
-                        border: `1.5px solid ${selected ? tokens.orange : tokens.border}`,
-                        color: selected ? tokens.orange : tokens.navy,
-                        fontWeight: selected ? 600 : 400,
-                        "&:hover": { borderColor: tokens.orange },
-                      }}
                     />
                   );
                 })}
@@ -290,8 +289,9 @@ export default function ProfilePage() {
               {/* Custom / other */}
               <Box sx={{ display: "flex", gap: 1 }}>
                 <TextField
-                  size="small"
                   placeholder="Other (e.g. no cilantro)"
+                  size="small"
+                  sx={{ flex: 1 }}
                   value={otherDiet}
                   onChange={(e) => setOtherDiet(e.target.value)}
                   onKeyDown={(e) => {
@@ -304,12 +304,12 @@ export default function ProfilePage() {
                       setOtherDiet("");
                     }
                   }}
-                  sx={{ flex: 1 }}
                 />
                 <Button
-                  size="small"
-                  variant="outlined"
                   disabled={!otherDiet.trim()}
+                  size="small"
+                  sx={{ borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
+                  variant="outlined"
                   onClick={() => {
                     const val = otherDiet.trim();
                     if (!val) return;
@@ -319,7 +319,6 @@ export default function ProfilePage() {
                     }));
                     setOtherDiet("");
                   }}
-                  sx={{ borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
                 >
                   Add
                 </Button>
@@ -332,6 +331,12 @@ export default function ProfilePage() {
                   <Chip
                     key={custom}
                     label={custom}
+                    sx={{
+                      alignSelf: "flex-start",
+                      background: tokens.creamDark,
+                      border: `1.5px solid ${tokens.border}`,
+                      fontWeight: 500,
+                    }}
                     onDelete={() =>
                       setForm((prev) => ({
                         ...prev,
@@ -340,12 +345,6 @@ export default function ProfilePage() {
                         ),
                       }))
                     }
-                    sx={{
-                      alignSelf: "flex-start",
-                      background: tokens.creamDark,
-                      border: `1.5px solid ${tokens.border}`,
-                      fontWeight: 500,
-                    }}
                   />
                 ))}
             </Box>
@@ -353,8 +352,8 @@ export default function ProfilePage() {
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {(profile?.dietaryPreferences ?? []).length === 0 ? (
                 <Typography
-                  variant="caption"
                   sx={{ color: tokens.mutedLight, fontStyle: "italic" }}
+                  variant="caption"
                 >
                   None set
                 </Typography>
@@ -380,16 +379,16 @@ export default function ProfilePage() {
 
         {editing && (
           <Box sx={{ display: "flex", gap: 1.5, mb: 4 }}>
-            <Button variant="contained" onClick={handleSave} disabled={saving} sx={{ flex: 1 }}>
+            <Button disabled={saving} sx={{ flex: 1 }} variant="contained" onClick={handleSave}>
               {saving ? "Saving…" : "Save Changes"}
             </Button>
             <Button
+              sx={{ borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
               variant="outlined"
               onClick={() => {
                 setEditing(false);
                 setForm(profile ?? {});
               }}
-              sx={{ borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
             >
               Cancel
             </Button>
@@ -413,9 +412,9 @@ export default function ProfilePage() {
             <Typography>No events yet — RSVP to one!</Typography>
             <Link href="/events" style={{ textDecoration: "none" }}>
               <Button
-                variant="outlined"
                 size="small"
                 sx={{ mt: 2, borderRadius: 100, borderColor: tokens.border, color: tokens.muted }}
+                variant="outlined"
               >
                 Browse Events
               </Button>
@@ -450,7 +449,7 @@ export default function ProfilePage() {
                     {/* eventTitle would be joined from the events collection — see rsvps API below */}
                     {(rsvp as any).eventTitle ?? rsvp.eventId}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: tokens.muted }}>
+                  <Typography sx={{ color: tokens.muted }} variant="caption">
                     RSVP'd {dayjs(rsvp.createdAt).format("MMM D, YYYY")}
                     {rsvp.totalCount > 1 && ` · +${rsvp.totalCount - 1} guests`}
                   </Typography>
@@ -480,7 +479,6 @@ export default function ProfilePage() {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <Typography
-      variant="caption"
       sx={{
         fontFamily: '"Bebas Neue", sans-serif',
         fontSize: "0.8125rem",
@@ -489,6 +487,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         display: "block",
         mb: 1.5,
       }}
+      variant="caption"
     >
       {children}
     </Typography>

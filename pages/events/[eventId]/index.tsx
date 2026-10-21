@@ -1,27 +1,26 @@
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
 import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { parse as parseCookies } from "cookie";
-import React, { useState } from "react";
+import dayjs from "dayjs";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import type { GetServerSideProps } from "next";
 import { useSession } from "next-auth/react";
-import dayjs from "dayjs";
+import React, { useState } from "react";
 
-import OpenGraph from "../../../src/components/OpenGraph";
-import EnvelopeOverlay from "../../../src/components/events/EnvelopeOverlay";
+import CommentSection from "../../../src/components/detail/CommentSection";
+import DatePollSection from "../../../src/components/detail/DatePollSection";
+import EventLocked from "../../../src/components/detail/EventLocked";
 import FoodSection from "../../../src/components/detail/FoodSection";
 import { GuestList, RSVPBar } from "../../../src/components/detail/GuestList";
-import ShareButton from "../../../src/components/detail/ShareButton";
-import CommentSection from "../../../src/components/detail/CommentSection";
-import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
-import EventLocked from "../../../src/components/detail/EventLocked";
 import HostRecsWishlist from "../../../src/components/detail/HostRecsWishlist";
-import DatePollSection from "../../../src/components/detail/DatePollSection";
-
+import PhotoAlbum from "../../../src/components/detail/PhotoAlbum";
+import ShareButton from "../../../src/components/detail/ShareButton";
+import EnvelopeOverlay from "../../../src/components/events/EnvelopeOverlay";
+import OpenGraph from "../../../src/components/OpenGraph";
 import {
   getDietaryAlerts,
   getEvent,
@@ -166,7 +165,7 @@ function EventDetail(props: UnlockedEventProps) {
     <>
       <Head>
         <title>{`${event.title} — ${getSiteConfig().name}`}</title>
-        <meta name="description" content={event.description || event.title} />
+        <meta content={event.description || event.title} name="description" />
       </Head>
       <OpenGraph
         description={event.description || `${event.title} · ${event.location}`}
@@ -192,9 +191,9 @@ function EventDetail(props: UnlockedEventProps) {
       >
         {event.flyer && (
           <Box
+            alt={event.title}
             component="img"
             src={event.flyer}
-            alt={event.title}
             sx={{
               position: "absolute",
               inset: 0,
@@ -228,8 +227,8 @@ function EventDetail(props: UnlockedEventProps) {
           }}
         >
           <Button
-            href="/events"
             component="a"
+            href="/events"
             size="small"
             sx={{
               color: "rgba(255,255,255,0.9)",
@@ -265,13 +264,13 @@ function EventDetail(props: UnlockedEventProps) {
           }}
         >
           <Typography
-            variant="h1"
             sx={{
               fontSize: "clamp(28px, 7vw, 52px)",
               color: "#fff",
               mb: 0.75,
               lineHeight: 1,
             }}
+            variant="h1"
           >
             {event.title}
           </Typography>
@@ -296,7 +295,7 @@ function EventDetail(props: UnlockedEventProps) {
           }}
         >
           {isPolling ? (
-            <InfoCell icon="🗳️" label="Date" value="TBD — vote below" accent />
+            <InfoCell accent icon="🗳️" label="Date" value="TBD — vote below" />
           ) : (
             <>
               <InfoCell icon="📅" label="Date" value={humanDate} />
@@ -304,17 +303,17 @@ function EventDetail(props: UnlockedEventProps) {
             </>
           )}
           <InfoCell
+            href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
             icon="📍"
             label="Location"
             value={event.location.replace("--", " / ")}
-            href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
           />
           {!isPast && !isPolling && (
             <InfoCell
+              accent
               icon="⏰"
               label="Countdown"
               value={daysUntil <= 0 ? "Today!" : `${pluralDays(daysUntil)} away`}
-              accent
             />
           )}
           {isPast && (
@@ -354,12 +353,12 @@ function EventDetail(props: UnlockedEventProps) {
 
         {isPolling && datePoll && (
           <DatePollSection
-            eventId={event.id}
-            poll={datePoll}
-            initialVotes={datePollVotes}
             allowAnonymous={allowAnonymous}
             canLock={canEditEvent}
+            eventId={event.id}
+            initialVotes={datePollVotes}
             isSignedIn={!!session}
+            poll={datePoll}
             sessionName={session?.user?.name ?? null}
             sessionUserId={sessionUserId}
           />
@@ -367,11 +366,11 @@ function EventDetail(props: UnlockedEventProps) {
 
         {!isPast && !isPolling && (
           <RSVPBar
-            eventId={event.id}
-            totalCount={total}
-            eventTitle={event.title}
-            eventDate={shortDate}
             allowAnonymous={allowAnonymous}
+            eventDate={shortDate}
+            eventId={event.id}
+            eventTitle={event.title}
+            totalCount={total}
             onRSVP={handleRSVP}
           />
         )}
@@ -407,11 +406,11 @@ function EventDetail(props: UnlockedEventProps) {
             )}
             <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {visibleCats.map((cat) => (
-                <Grid size={{ xs: 12, sm: 6 }} key={cat}>
+                <Grid key={cat} size={{ xs: 12, sm: 6 }}>
                   <FoodSection
                     category={cat}
-                    items={items}
                     eventId={event.id}
+                    items={items}
                     onItemAdded={(item) => setItems((prev) => [...prev, item])}
                   />
                 </Grid>
@@ -427,15 +426,13 @@ function EventDetail(props: UnlockedEventProps) {
                   mt: 0.5,
                 }}
               >
-                <Typography variant="caption" sx={{ alignSelf: "center", color: tokens.muted }}>
+                <Typography sx={{ alignSelf: "center", color: tokens.muted }} variant="caption">
                   Add a category:
                 </Typography>
                 {hiddenCats.map((cat) => (
                   <Button
                     key={cat}
-                    variant="outlined"
                     size="small"
-                    onClick={() => setExpandedCats((prev) => new Set([...prev, cat]))}
                     sx={{
                       borderStyle: "dashed",
                       borderRadius: "10px",
@@ -447,6 +444,8 @@ function EventDetail(props: UnlockedEventProps) {
                         color: tokens.orange,
                       },
                     }}
+                    variant="outlined"
+                    onClick={() => setExpandedCats((prev) => new Set([...prev, cat]))}
                   >
                     {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
                   </Button>
@@ -481,7 +480,6 @@ function EventDetail(props: UnlockedEventProps) {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <Typography
-      variant="h3"
       sx={{
         fontSize: "1.375rem",
         letterSpacing: "0.04em",
@@ -489,6 +487,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
         mt: 3.5,
         mb: 1.75,
       }}
+      variant="h3"
     >
       {children}
     </Typography>
@@ -513,7 +512,6 @@ function InfoCell({
       <Box sx={{ fontSize: "1.25rem", flexShrink: 0 }}>{icon}</Box>
       <Box>
         <Typography
-          variant="caption"
           sx={{
             display: "block",
             fontWeight: 700,
@@ -521,6 +519,7 @@ function InfoCell({
             textTransform: "uppercase",
             mb: 0.125,
           }}
+          variant="caption"
         >
           {label}
         </Typography>
@@ -540,9 +539,9 @@ function InfoCell({
     <Box
       component="a"
       href={href}
-      target="_blank"
       rel="noopener noreferrer"
       sx={{ textDecoration: "none", "&:hover": { opacity: 0.8 } }}
+      target="_blank"
     >
       {content}
     </Box>

@@ -1,15 +1,14 @@
-import React from "react";
-import Head from "next/head";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { signIn } from "next-auth/react";
+import React from "react";
 
-import { tokens } from "../../src/styles/theme";
 import { getSiteConfig } from "../../src/models";
+import { tokens } from "../../src/styles/theme";
 
 export default function AuthErrorPage() {
   const router = useRouter();
@@ -71,13 +70,13 @@ export default function AuthErrorPage() {
         >
           {/* Logo */}
           <Typography
-            variant="h2"
             sx={{
               fontSize: "2rem",
               color: tokens.navy,
               letterSpacing: "0.1em",
               mb: 0.5,
             }}
+            variant="h2"
           >
             {site.isInstance ? site.name.toUpperCase() : "COMUNL"}
           </Typography>
@@ -101,25 +100,25 @@ export default function AuthErrorPage() {
           )}
 
           <Button
-            variant="contained"
-            size="large"
             fullWidth
-            onClick={handleGoogleSignIn}
             disabled={loading}
+            size="large"
             startIcon={
               <Box
+                alt=""
                 component="img"
                 src="https://www.google.com/favicon.ico"
-                alt=""
                 sx={{ width: 18, height: 18 }}
               />
             }
             sx={{ mb: 2 }}
+            variant="contained"
+            onClick={handleGoogleSignIn}
           >
             {loading ? "Redirecting…" : "Continue with Google"}
           </Button>
 
-          <Typography variant="caption" sx={{ color: tokens.muted }}>
+          <Typography sx={{ color: tokens.muted }} variant="caption">
             We use Google to keep things simple.
           </Typography>
         </Box>

@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+
 import { upsertUser } from "../../../src/lib/db";
 import { getSiteConfig } from "../../../src/models";
 

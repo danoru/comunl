@@ -6,14 +6,13 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import Avatar from "@mui/material/Avatar";
 import BottomNavigation from "@mui/material/BottomNavigation";
+import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
-
-import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import React from "react";
 
 import { isMainSite, type SiteConfig } from "../../models";

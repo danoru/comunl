@@ -1,24 +1,22 @@
-import React, { useState } from "react";
-import { useSession, signIn } from "next-auth/react";
-
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import CloseIcon from "@mui/icons-material/Close";
+import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Collapse from "@mui/material/Collapse";
-import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
-import Alert from "@mui/material/Alert";
-
-import CloseIcon from "@mui/icons-material/Close";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { useSession, signIn } from "next-auth/react";
+import React, { useState } from "react";
 
 import type { SerializedGuest } from "../../models";
 import { tokens } from "../../styles/theme";
@@ -44,7 +42,7 @@ export function GuestList({ guests }: GuestListProps) {
 
   if (guests.length === 0) {
     return (
-      <Typography variant="caption" sx={{ fontStyle: "italic", color: tokens.mutedLight }}>
+      <Typography sx={{ fontStyle: "italic", color: tokens.mutedLight }} variant="caption">
         No one yet — be the first!
       </Typography>
     );
@@ -149,7 +147,7 @@ export function GuestList({ guests }: GuestListProps) {
                   }}
                 >
                   {namedAdditional.map((g, j) => (
-                    <Typography key={j} variant="caption" sx={{ color: tokens.muted }}>
+                    <Typography key={j} sx={{ color: tokens.muted }} variant="caption">
                       + {g.name}
                     </Typography>
                   ))}
@@ -304,19 +302,18 @@ export function RSVPBar({
           </Typography>
         </Box>
         <Button
+          sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
           variant="contained"
           onClick={handleOpen}
-          sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
           I'm Attending →
         </Button>
       </Box>
 
       <Dialog
-        open={open}
-        onClose={handleClose}
         fullWidth
         maxWidth="xs"
+        open={open}
         PaperProps={{
           sx: {
             borderRadius: "24px 24px 0 0",
@@ -331,6 +328,7 @@ export function RSVPBar({
             transition: "bottom 0.15s ease",
           },
         }}
+        onClose={handleClose}
       >
         <DialogTitle
           sx={{
@@ -341,7 +339,7 @@ export function RSVPBar({
           }}
         >
           <Box>
-            <Typography variant="h3" sx={{ fontSize: "1.75rem" }}>
+            <Typography sx={{ fontSize: "1.75rem" }} variant="h3">
               {step === "done" ? "You're in! 🎉" : "RSVP"}
             </Typography>
             {step !== "done" && (
@@ -350,7 +348,7 @@ export function RSVPBar({
               </Typography>
             )}
           </Box>
-          <IconButton onClick={handleClose} size="small">
+          <IconButton size="small" onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -364,7 +362,7 @@ export function RSVPBar({
                 {additional.length > 0 &&
                   ` You're bringing ${additional.length} additional ${additional.length === 1 ? "guest" : "guests"}.`}
               </Typography>
-              <Button variant="contained" fullWidth onClick={handleClose}>
+              <Button fullWidth variant="contained" onClick={handleClose}>
                 Close
               </Button>
             </Box>
@@ -378,11 +376,11 @@ export function RSVPBar({
               {additional.map((g, i) => (
                 <Box key={i} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                   <TextField
-                    size="small"
+                    fullWidth
                     placeholder={`Guest ${i + 1} name (optional)`}
+                    size="small"
                     value={g.name}
                     onChange={(e) => updateAdditional(i, e.target.value)}
-                    fullWidth
                   />
                   <IconButton size="small" onClick={() => removeAdditional(i)}>
                     <CloseIcon fontSize="small" />
@@ -391,16 +389,16 @@ export function RSVPBar({
               ))}
 
               <Button
-                variant="outlined"
                 size="small"
                 startIcon={<AddRoundedIcon />}
-                onClick={addAdditionalSlot}
                 sx={{
                   alignSelf: "flex-start",
                   borderRadius: 100,
                   borderColor: tokens.border,
                   color: tokens.muted,
                 }}
+                variant="outlined"
+                onClick={addAdditionalSlot}
               >
                 Add another guest
               </Button>
@@ -408,19 +406,19 @@ export function RSVPBar({
               <Divider sx={{ my: 0.5 }} />
 
               <Button
-                variant="contained"
-                size="large"
-                onClick={handleSubmit}
-                disabled={loading}
                 fullWidth
+                disabled={loading}
+                size="large"
+                variant="contained"
+                onClick={handleSubmit}
               >
                 {loading ? "Saving…" : "Confirm RSVP →"}
               </Button>
               <Button
-                variant="text"
-                onClick={handleSubmit}
                 disabled={loading}
                 sx={{ color: tokens.muted, fontSize: "0.8125rem" }}
+                variant="text"
+                onClick={handleSubmit}
               >
                 Just me — skip this
               </Button>
@@ -445,27 +443,27 @@ export function RSVPBar({
                     <Typography sx={{ fontWeight: 600, fontSize: "0.9375rem" }}>
                       {userName}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: tokens.muted }}>
+                    <Typography sx={{ color: tokens.muted }} variant="caption">
                       RSVP'ing as yourself
                     </Typography>
                   </Box>
                 </Box>
               ) : allowAnonymous ? (
                 <TextField
+                  autoFocus
+                  fullWidth
+                  error={!!error}
                   label="Your name *"
                   value={anonName}
                   onChange={(e) => setAnonName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && setStep("additional")}
-                  fullWidth
-                  autoFocus
-                  error={!!error}
                 />
               ) : (
                 <Box sx={{ textAlign: "center", py: 2 }}>
                   <Typography sx={{ mb: 2, color: tokens.muted }}>
                     You need to sign in to RSVP for this event.
                   </Typography>
-                  <Button variant="contained" fullWidth onClick={() => signIn("google")}>
+                  <Button fullWidth variant="contained" onClick={() => signIn("google")}>
                     Sign in with Google
                   </Button>
                 </Box>
@@ -482,13 +480,11 @@ export function RSVPBar({
                     p: "10px 14px",
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: tokens.muted, flex: 1 }}>
+                  <Typography sx={{ color: tokens.muted, flex: 1 }} variant="caption">
                     Sign in to track your event history and save your info.
                   </Typography>
                   <Button
                     size="small"
-                    variant="outlined"
-                    onClick={() => signIn("google")}
                     sx={{
                       whiteSpace: "nowrap",
                       borderRadius: 100,
@@ -496,6 +492,8 @@ export function RSVPBar({
                       color: tokens.navy,
                       fontSize: "0.75rem",
                     }}
+                    variant="outlined"
+                    onClick={() => signIn("google")}
                   >
                     Sign in
                   </Button>
@@ -510,8 +508,9 @@ export function RSVPBar({
 
               {(isSignedIn || allowAnonymous) && (
                 <Button
-                  variant="contained"
+                  fullWidth
                   size="large"
+                  variant="contained"
                   onClick={() => {
                     if (!isSignedIn && !anonName.trim()) {
                       setError("Please enter your name.");
@@ -520,7 +519,6 @@ export function RSVPBar({
                     setError("");
                     setStep("additional");
                   }}
-                  fullWidth
                 >
                   Next →
                 </Button>

@@ -25,10 +25,11 @@
  * Output CSV path: scripts/output/host-review-{timestamp}.csv
  */
 
-import { MongoClient, type Db, type ObjectId } from "mongodb";
-import * as dotenv from "dotenv";
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
+
+import * as dotenv from "dotenv";
+import { MongoClient, type Db, type ObjectId } from "mongodb";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
