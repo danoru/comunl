@@ -73,6 +73,7 @@ export default function NewEventPage() {
   const [serverError, setServerError] = useState("");
 
   const { data: session } = useSession();
+  const isAdmin = (session as any)?.isAdmin ?? false;
 
   // Pre-fill from a converted intent (/events/new?intentId=…&title=…).
   const prefilledRef = React.useRef(false);
@@ -266,7 +267,7 @@ export default function NewEventPage() {
             error={!!errors.location}
             helperText={errors.location}
             label="Location *"
-            placeholder="e.g. Cody's Corner"
+            placeholder="e.g. Maya's backyard"
             value={form.location}
             onChange={(e) => set("location", e.target.value)}
           />
@@ -417,35 +418,39 @@ export default function NewEventPage() {
               flexDirection: "column",
             }}
           >
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.isFeatured}
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: tokens.orange,
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: tokens.orange,
-                    },
-                  }}
-                  onChange={(e) => set("isFeatured", e.target.checked)}
+            {isAdmin && (
+              <>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.isFeatured}
+                      sx={{
+                        "& .MuiSwitch-switchBase.Mui-checked": {
+                          color: tokens.orange,
+                        },
+                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                          backgroundColor: tokens.orange,
+                        },
+                      }}
+                      onChange={(e) => set("isFeatured", e.target.checked)}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
+                        Featured event
+                      </Typography>
+                      <Typography variant="caption">
+                        Shows this event prominently on the homepage
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ py: 1 }}
                 />
-              }
-              label={
-                <Box>
-                  <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
-                    Featured event
-                  </Typography>
-                  <Typography variant="caption">
-                    Shows this event prominently on the homepage
-                  </Typography>
-                </Box>
-              }
-              sx={{ py: 1 }}
-            />
 
-            <Divider />
+                <Divider />
+              </>
+            )}
 
             <FormControlLabel
               control={

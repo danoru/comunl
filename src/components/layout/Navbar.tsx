@@ -131,7 +131,7 @@ export default function Navbar({ siteConfig }: { siteConfig: SiteConfig }) {
                 variant="outlined"
                 onClick={() => signIn("google")}
               >
-                Sign In
+                Sign in
               </Button>
             )}
           </Box>

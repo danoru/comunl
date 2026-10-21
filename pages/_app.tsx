@@ -64,7 +64,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithSession) {
             <link href="/manifest.webmanifest" rel="manifest" />
             <link href="/icons/apple-touch-icon.png" rel="apple-touch-icon" />
             <meta content="yes" name="apple-mobile-web-app-capable" />
-            <meta content="Comunl" name="apple-mobile-web-app-title" />
+            <meta content={site.name} name="apple-mobile-web-app-title" />
             <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style" />
           </Head>
           <OpenGraph />

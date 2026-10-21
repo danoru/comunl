@@ -11,7 +11,7 @@ import Alert from "@mui/material/Alert";
 import { tokens } from "../../src/styles/theme";
 import { getSiteConfig } from "../../src/models";
 
-export default function SignInPage() {
+export default function AuthErrorPage() {
   const router = useRouter();
   const site = getSiteConfig();
   const callback = (router.query.callbackUrl as string) ?? "/";
@@ -22,7 +22,7 @@ export default function SignInPage() {
     await signIn("google", { callbackUrl: callback });
   }
 
-  const isAccessDenied = router.query.error === "AccessDenied";
+  const hasError = !!router.query.error;
 
   return (
     <>
@@ -91,12 +91,12 @@ export default function SignInPage() {
               mb: 3.5,
             }}
           >
-            Admin access only
+            Something went wrong signing you in
           </Typography>
 
-          {isAccessDenied && (
+          {hasError && (
             <Alert severity="error" sx={{ mb: 2.5, borderRadius: "12px", textAlign: "left" }}>
-              Your email isn't on the admin list. Contact the site owner to get access.
+              We couldn't sign you in. Please try again.
             </Alert>
           )}
 
@@ -120,7 +120,7 @@ export default function SignInPage() {
           </Button>
 
           <Typography variant="caption" sx={{ color: tokens.muted }}>
-            Only authorised emails can sign in.
+            We use Google to keep things simple.
           </Typography>
         </Box>
       </Box>

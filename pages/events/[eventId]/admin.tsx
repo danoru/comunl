@@ -342,32 +342,36 @@ export default function AdminPage({ event, initialGuests, initialItems }: AdminP
             mb: 3,
           }}
         >
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isFeatured}
-                onChange={(e) => setIsFeatured(e.target.checked)}
-                sx={{
-                  "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: tokens.orange,
-                  },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: tokens.orange,
-                  },
-                }}
+          {isAdmin && (
+            <>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    sx={{
+                      "& .MuiSwitch-switchBase.Mui-checked": {
+                        color: tokens.orange,
+                      },
+                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                        backgroundColor: tokens.orange,
+                      },
+                    }}
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
+                      Featured event
+                    </Typography>
+                    <Typography variant="caption">Shows on the homepage hero</Typography>
+                  </Box>
+                }
+                sx={{ py: 1 }}
               />
-            }
-            label={
-              <Box>
-                <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500 }}>
-                  Featured event
-                </Typography>
-                <Typography variant="caption">Shows on the homepage hero</Typography>
-              </Box>
-            }
-            sx={{ py: 1 }}
-          />
-          <Divider />
+              <Divider />
+            </>
+          )}
           <FormControlLabel
             control={
               <Switch

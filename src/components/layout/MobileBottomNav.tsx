@@ -83,7 +83,7 @@ export default function MobileBottomNav({ siteConfig }: { siteConfig: SiteConfig
               <PersonRoundedIcon />
             )
           }
-          label={session ? (session.user?.name?.split(" ")[0] ?? "Me") : "Sign In"}
+          label={session ? (session.user?.name?.split(" ")[0] ?? "Me") : "Sign in"}
           value="profile"
           onClick={(e) => {
             if (session) setAnchorEl(e.currentTarget);

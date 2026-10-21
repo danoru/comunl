@@ -43,7 +43,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           errors: result.error.flatten().fieldErrors,
         });
       }
-      const updated = await updateEvent(tenantId, eventId, result.data);
+      // Hosts can edit their event, but only admins can feature it.
+      const { isFeatured, ...rest } = result.data;
+      const changes = auth.isAdmin ? result.data : rest;
+      if (!auth.isAdmin && isFeatured !== undefined && isFeatured !== event.isFeatured) {
+        return res.status(403).json({ message: "Only admins can feature events" });
+      }
+      const updated = await updateEvent(tenantId, eventId, changes);
       if (!updated) return res.status(404).json({ message: "Event not found" });
       return res.status(200).json({ success: true });
     }

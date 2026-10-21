@@ -93,8 +93,10 @@ function InstanceHero({
   const now = new Date();
   const eventDate = featured ? new Date(featured.date) : null;
   const isPast = eventDate ? eventDate < now : false;
+  // Calendar days between local midnights; round() absorbs DST shifts.
+  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const daysUntil = eventDate
-    ? Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    ? Math.round((midnight(eventDate) - midnight(now)) / (1000 * 60 * 60 * 24))
     : 0;
 
   return (
@@ -172,7 +174,7 @@ function InstanceHero({
               />
               {!isPast && (
                 <Chip
-                  label={`⏰ ${daysUntil === 0 ? "Today!" : `${daysUntil} days away`}`}
+                  label={`⏰ ${daysUntil === 0 ? "Today!" : `${daysUntil} ${daysUntil === 1 ? "day" : "days"} away`}`}
                   sx={{
                     background: "rgba(244,99,30,0.25)",
                     color: tokens.orangeLight,
@@ -334,7 +336,7 @@ const FEATURES = [
     desc: "One URL is all guests need.",
   },
   {
-    icon: "🏷️",
+    icon: "📸",
     bg: "#FFE8F5",
     title: "Comments & Pictures",
     desc: "Share your comments and pictures from the event!",

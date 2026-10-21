@@ -2,7 +2,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
-import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import { parse as parseCookies } from "cookie";
 import React, { useState } from "react";
@@ -87,18 +86,29 @@ type EventDetailPageProps =
       datePollVotes: SerializedDatePollVote[];
     };
 
+type UnlockedEventProps = Extract<EventDetailPageProps, { isLocked: false }>;
+
+function pluralDays(n: number): string {
+  return `${n} ${n === 1 ? "day" : "days"}`;
+}
+
+// The locked and unlocked views are separate components so the unlocked view's
+// hooks always run in the same order (no hooks after an early return).
 export default function EventDetailPage(props: EventDetailPageProps) {
   if (props.isLocked) {
     return (
       <>
         <Head>
-          <title>{props.event.title} — Comunl</title>
+          <title>{`${props.event.title} — ${getSiteConfig().name}`}</title>
         </Head>
         <EventLocked eventId={props.event.id} eventTitle={props.event.title} />
       </>
     );
   }
+  return <EventDetail {...props} />;
+}
 
+function EventDetail(props: UnlockedEventProps) {
   const {
     event,
     initialItems,
@@ -130,7 +140,8 @@ export default function EventDetailPage(props: EventDetailPageProps) {
   const eventDate = dayjs(event.date);
   const now = dayjs();
   const isPast = !isPolling && eventDate.isBefore(now);
-  const daysUntil = eventDate.diff(now, "day");
+  // Calendar days, not 24h blocks: tomorrow evening is "1 day away", not "Today!".
+  const daysUntil = eventDate.startOf("day").diff(now.startOf("day"), "day");
   const humanDate = eventDate.format("dddd, MMMM D, YYYY");
   const timeRange = eventDate.format("h:mm A");
   const shortDate = eventDate.format("MMM D · h:mm A");
@@ -154,7 +165,7 @@ export default function EventDetailPage(props: EventDetailPageProps) {
   return (
     <>
       <Head>
-        <title>{event.title} — Comunl</title>
+        <title>{`${event.title} — ${getSiteConfig().name}`}</title>
         <meta name="description" content={event.description || event.title} />
       </Head>
       <OpenGraph
@@ -302,12 +313,16 @@ export default function EventDetailPage(props: EventDetailPageProps) {
             <InfoCell
               icon="⏰"
               label="Countdown"
-              value={daysUntil <= 0 ? "Today!" : `${daysUntil} days away`}
+              value={daysUntil <= 0 ? "Today!" : `${pluralDays(daysUntil)} away`}
               accent
             />
           )}
           {isPast && (
-            <InfoCell icon="✅" label="Status" value={`${Math.abs(daysUntil)} days ago`} />
+            <InfoCell
+              icon="✅"
+              label="Status"
+              value={daysUntil === 0 ? "Earlier today" : `${pluralDays(Math.abs(daysUntil))} ago`}
+            />
           )}
           <Box sx={{ ml: "auto", alignSelf: "center" }}>
             <ShareButton title={event.title} />
@@ -369,6 +384,27 @@ export default function EventDetailPage(props: EventDetailPageProps) {
         {!event.isGuestOnly && (
           <>
             <SectionTitle>Food & Drinks</SectionTitle>
+            {dietaryAlerts.length > 0 && (
+              <Box
+                sx={{
+                  background: "rgba(234, 179, 8, 0.08)",
+                  border: "1.5px solid rgba(234, 179, 8, 0.3)",
+                  borderRadius: "10px",
+                  p: "8px 12px",
+                  mb: 1.5,
+                }}
+              >
+                <Typography sx={{ fontSize: "0.8125rem", lineHeight: 1.5, color: tokens.navy }}>
+                  <Box component="span" sx={{ mr: 0.5 }}>
+                    ⚠️
+                  </Box>
+                  <Box component="span" sx={{ fontWeight: 600 }}>
+                    Dietary heads-up:{" "}
+                  </Box>
+                  {dietaryAlerts.join(", ")}
+                </Typography>
+              </Box>
+            )}
             <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {visibleCats.map((cat) => (
                 <Grid size={{ xs: 12, sm: 6 }} key={cat}>
@@ -376,7 +412,6 @@ export default function EventDetailPage(props: EventDetailPageProps) {
                     category={cat}
                     items={items}
                     eventId={event.id}
-                    dietaryAlerts={dietaryAlerts}
                     onItemAdded={(item) => setItems((prev) => [...prev, item])}
                   />
                 </Grid>
@@ -427,9 +462,9 @@ export default function EventDetailPage(props: EventDetailPageProps) {
             <HostRecsWishlist eventId={event.id} items={items} onChange={setItems} />
           </>
         )}
-        <Divider sx={{ my: 4 }} />
         {initialPhotos.length > 0 && (
           <>
+            <Divider sx={{ my: 4 }} />
             <SectionTitle>📸 Photo Album</SectionTitle>
             <PhotoAlbum comments={initialPhotos} />
           </>

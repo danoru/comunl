@@ -54,6 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = await createEvent(tenantId, {
       ...result.data,
+      // Featuring puts an event on the homepage, so only admins can do it.
+      isFeatured: isAdmin ? result.data.isFeatured : false,
       id,
       inviteCode,
       createdBy: userId,
